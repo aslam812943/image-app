@@ -1,13 +1,38 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import RegisterForm from '../components/auth/RegisterForm';
+import LoginForm from '../components/auth/LoginForm'
 import { authService } from '../services/api';
-import type { IRegisterData } from '../types/auth.types';
+import type { IRegisterData, ILoginData } from '../types/auth.types';
 import axios from 'axios';
 
 const Auth: React.FC = () => {
     const [mode, setMode] = useState<'login' | 'register'>('register');
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const navigate = useNavigate();
+
+    const handleLogin = async (formData: ILoginData) => {
+        setIsLoading(true);
+        setMessage(null);
+        try {
+            const response = await authService.login(formData);
+            setMessage({ type: 'success', text: response.message || 'Login successful!' });
+            setTimeout(() => {
+                navigate('/');
+            }, 1000);
+        } catch (error: unknown) {
+            let errorMessage = 'Login failed. Please try again.';
+            if (axios.isAxiosError(error) && error.response) {
+                errorMessage = error.response.data?.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+            setMessage({ type: 'error', text: errorMessage });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleRegister = async (formData: IRegisterData) => {
         setIsLoading(true);
@@ -22,10 +47,7 @@ const Auth: React.FC = () => {
             } else if (error instanceof Error) {
                 errorMessage = error.message;
             }
-            setMessage({
-                type: 'error',
-                text: errorMessage
-            });
+            setMessage({ type: 'error', text: errorMessage });
         } finally {
             setIsLoading(false);
         }
@@ -64,16 +86,7 @@ const Auth: React.FC = () => {
                 {mode === 'register' ? (
                     <RegisterForm onSubmit={handleRegister} isLoading={isLoading} />
                 ) : (
-                    <div className="bg-white p-10 rounded-3xl shadow-2xl border border-gray-100 text-center space-y-4">
-                        <h2 className="text-3xl font-extrabold text-gray-900">Welcome Back</h2>
-                        <p className="text-gray-500">Login functionality is coming soon. Please use the Register tab for now.</p>
-                        <button
-                            onClick={() => setMode('register')}
-                            className="text-blue-600 font-bold hover:underline"
-                        >
-                            Go to Register
-                        </button>
-                    </div>
+                    <LoginForm onSubmit={handleLogin} isLoading={isLoading} />
                 )}
             </div>
         </div>

@@ -6,4 +6,8 @@ export const AUTH_MESSAGES = {
     PASSWORD_REQUIRED: 'Password is required',
     REGISTER_SUCCESS: 'User registered successfully',
     REGISTER_FAILED: 'Registration failed',
+    LOGIN_SUCCESS: 'Logged in successfully',
+    LOGIN_FAILED: 'Login failed',
+    INVALID_CREDENTIALS: 'Invalid email/phone',
+    INVALID_PASSWORD: 'Invalid password',
 } as const;
