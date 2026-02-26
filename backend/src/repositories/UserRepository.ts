@@ -1,5 +1,5 @@
 import { IUser } from '../types/user.types.js';
-import User, { IUserModel } from '../models/User.js';
+import User from '../models/User.js';
 import { IUserRepository } from './interfaces/IUserRepository.js';
 
 export class UserRepository implements IUserRepository {
@@ -24,7 +24,7 @@ export class UserRepository implements IUserRepository {
         return user ? this.mapToIUser(user) : null;
     }
 
-    private mapToIUser(doc: IUserModel): IUser {
+    private mapToIUser(doc: any): IUser {
         const user: IUser = {
             id: doc._id.toString(),
             username: doc.username,
