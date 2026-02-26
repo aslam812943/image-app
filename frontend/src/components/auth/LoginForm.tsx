@@ -1,32 +1,30 @@
-import React, { useState } from 'react';
-import type { IRegisterData } from '../../types/auth.types';
+import React, { useState } from "react";
+import type { ILoginData } from "../../types/auth.types";
 
-interface RegisterFormProps {
-    onSubmit: (data: IRegisterData) => Promise<void>;
+interface LoginFormProps {
+    onSubmit: (data: ILoginData) => Promise<void>;
     isLoading: boolean;
 }
 
-const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
     const [formData, setFormData] = useState({
-        username: '',
-        identifier: '', 
-        password: '',
+        identifier: '',
+        password: ''
     });
 
-    const [errors, setErrors] = useState<Partial<Record<keyof IRegisterData | 'identifier', string>>>({});
+    const [errors, setErrors] = useState<Partial<Record<keyof ILoginData, string>>>({});
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-
         setFormData((prev) => ({
             ...prev,
             [name]: value
         }));
 
-        if (errors[name as keyof IRegisterData | 'identifier']) {
+        if (errors[name as keyof ILoginData]) {
             setErrors((prev) => {
                 const newErrors = { ...prev };
-                delete newErrors[name as keyof IRegisterData | 'identifier'];
+                delete newErrors[name as keyof ILoginData];
                 return newErrors;
             });
         }
@@ -35,9 +33,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading }) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Simple validation
-        const newErrors: Partial<Record<keyof IRegisterData | 'identifier', string>> = {};
-        if (!formData.username) newErrors.username = 'Username is required';
+        const newErrors: Partial<Record<keyof ILoginData, string>> = {};
         if (!formData.identifier) newErrors.identifier = 'Email or Phone is required';
         if (!formData.password) newErrors.password = 'Password is required';
 
@@ -46,54 +42,23 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading }) => {
             return;
         }
 
-        // Determine if identifier is email or phone
-        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.identifier);
-        const isPhone = /^\d+$/.test(formData.identifier);
-
-        if (!isEmail && !isPhone) {
-            setErrors({ identifier: 'Please enter a valid email or phone number' });
-            return;
-        }
-
-        const payload: IRegisterData = {
-            username: formData.username,
-            password: formData.password,
-            email: isEmail ? formData.identifier : undefined,
-            phone: isPhone ? Number(formData.identifier) : undefined,
-        };
-
-        await onSubmit(payload);
+        await onSubmit(formData);
     };
 
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-6 w-full max-w-md p-10 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-gray-50 transition-all">
             <div className="text-center space-y-2 mb-2">
-                <h2 className="text-3xl font-black text-gray-900 tracking-tight">Create Account</h2>
-                <p className="text-gray-400 text-sm font-medium">Join our community in seconds.</p>
+                <h2 className="text-3xl font-black text-gray-900 tracking-tight">Welcome Back</h2>
+                <p className="text-gray-400 text-sm font-medium">Please enter your details to sign in.</p>
             </div>
 
-            {/* Username Field */}
+            {/* Identifier Field */}
             <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-gray-400 ml-1">Username</label>
-                <input
-                    name="username"
-                    type="text"
-                    placeholder="name"
-                    value={formData.username}
-                    onChange={handleChange}
-                    className={`w-full px-5 py-4 bg-gray-50 border rounded-2xl focus:ring-4 transition-all outline-none font-medium ${errors.username ? 'border-red-200 focus:ring-red-50' : 'border-gray-100 focus:ring-blue-50 focus:border-blue-200'
-                        }`}
-                />
-                {errors.username && <p className="text-[11px] text-red-500 font-bold ml-1">{errors.username}</p>}
-            </div>
-
-            {/* Identifier Field (Email or Phone) */}
-            <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-gray-400 ml-1">Email or Phone Number</label>
+                <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-gray-400 ml-1">Email or Phone</label>
                 <input
                     name="identifier"
                     type="text"
-                    placeholder="hello@world.com or 10-digit number"
+                    placeholder="Enter your email or phone"
                     value={formData.identifier}
                     onChange={handleChange}
                     className={`w-full px-5 py-4 bg-gray-50 border rounded-2xl focus:ring-4 transition-all outline-none font-medium ${errors.identifier ? 'border-red-200 focus:ring-red-50' : 'border-gray-100 focus:ring-blue-50 focus:border-blue-200'
@@ -125,9 +90,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading }) => {
                 {isLoading ? (
                     <div className="flex items-center justify-center gap-2">
                         <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Processing...</span>
+                        <span>Signing In...</span>
                     </div>
-                ) : 'Get Started'}
+                ) : 'Log In'}
             </button>
 
             <div className="relative my-2">
@@ -136,10 +101,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading }) => {
             </div>
 
             <p className="text-center text-xs text-gray-400 font-bold uppercase tracking-widest">
-                Have an account? <span className="text-indigo-600 cursor-pointer hover:underline">Log In</span>
+                Don't have an account? <span className="text-indigo-600 cursor-pointer hover:underline">Sign Up</span>
             </p>
         </form>
     );
 };
 
-export default RegisterForm;
+export default LoginForm;
