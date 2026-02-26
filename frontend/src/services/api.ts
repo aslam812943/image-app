@@ -1,9 +1,11 @@
 import axios from "axios";
-import type { IRegisterData,ILoginData, IAuthResponse } from "../types/auth.types";
+import type { IRegisterData, ILoginData, IAuthResponse } from "../types/auth.types";
 import { API_ROUTES } from "../constants/RouteConstants";
 
+export const BASE_URL = "http://localhost:5000";
+
 export const api = axios.create({
-    baseURL: "http://localhost:5000/api/",
+    baseURL: `${BASE_URL}/api/`,
     withCredentials: true
 });
 
@@ -13,9 +15,40 @@ export const authService = {
         return response.data;
     },
 
-    login:async(userData:ILoginData):Promise<IAuthResponse>=>{
-        const response = await api.post<IAuthResponse>(API_ROUTES.USER_LOGIN,userData)
+    login: async (userData: ILoginData): Promise<IAuthResponse> => {
+        const response = await api.post<IAuthResponse>(API_ROUTES.USER_LOGIN, userData)
         return response.data
+    }
+};
+
+export const imageService = {
+    upload: async (formData: FormData) => {
+        const response = await api.post('images/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    },
+
+    getImages: async () => {
+        const response = await api.get('images');
+        return response.data;
+    },
+
+    update: async (id: string, formData: FormData) => {
+        const response = await api.patch(`images/${id}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    },
+
+    reorder: async (updates: { id: string; order: number }[]) => {
+        const response = await api.put('images/reorder', { updates });
+        return response.data;
+    },
+
+    delete: async (id: string) => {
+        const response = await api.delete(`images/${id}`);
+        return response.data;
     }
 };
 

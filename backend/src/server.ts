@@ -4,7 +4,8 @@ import cors from 'cors';
 import { connectDB } from './config/db.js'
 
 import cookieParser from 'cookie-parser';
-
+import imageRoutes from './routes/imageRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -19,8 +20,11 @@ app.use(cors({
 }));
 app.use('/uploads', express.static('uploads'));
 
-import userRoutes from './routes/userRoutes.js';
+
 app.use('/api/user', userRoutes);
+
+
+app.use('/api/images', imageRoutes);
 
 
 app.get("/", (req, res) => {

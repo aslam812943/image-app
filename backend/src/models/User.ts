@@ -1,9 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { IUser } from '../types/user.types.js';
-
-export interface IUserModel extends IUser, Document {
-    _id: mongoose.Types.ObjectId;
-}
 
 const UserSchema: Schema = new Schema(
     {
@@ -15,4 +11,4 @@ const UserSchema: Schema = new Schema(
     { timestamps: true }
 );
 
-export default mongoose.model<IUserModel>('User', UserSchema);
+export default mongoose.model<IUser>('User', UserSchema);

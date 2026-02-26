@@ -5,19 +5,18 @@ import LoginForm from '../components/auth/LoginForm'
 import { authService } from '../services/api';
 import type { IRegisterData, ILoginData } from '../types/auth.types';
 import axios from 'axios';
+import { showToast } from '../utils/toast';
 
 const Auth: React.FC = () => {
     const [mode, setMode] = useState<'login' | 'register'>('register');
     const [isLoading, setIsLoading] = useState(false);
-    const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const navigate = useNavigate();
 
     const handleLogin = async (formData: ILoginData) => {
         setIsLoading(true);
-        setMessage(null);
         try {
             const response = await authService.login(formData);
-            setMessage({ type: 'success', text: response.message || 'Login successful!' });
+            showToast('success', response.message || 'Login successful!');
             setTimeout(() => {
                 navigate('/');
             }, 1000);
@@ -28,7 +27,7 @@ const Auth: React.FC = () => {
             } else if (error instanceof Error) {
                 errorMessage = error.message;
             }
-            setMessage({ type: 'error', text: errorMessage });
+            showToast('error', errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -36,10 +35,9 @@ const Auth: React.FC = () => {
 
     const handleRegister = async (formData: IRegisterData) => {
         setIsLoading(true);
-        setMessage(null);
         try {
             await authService.register(formData);
-            setMessage({ type: 'success', text: 'Registration successful! You can now log in.' });
+            showToast('success', 'Registration successful! You can now log in.');
         } catch (error: unknown) {
             let errorMessage = 'Registration failed. Please try again.';
             if (axios.isAxiosError(error) && error.response) {
@@ -47,7 +45,7 @@ const Auth: React.FC = () => {
             } else if (error instanceof Error) {
                 errorMessage = error.message;
             }
-            setMessage({ type: 'error', text: errorMessage });
+            showToast('error', errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -74,14 +72,6 @@ const Auth: React.FC = () => {
                     </button>
                 </div>
 
-                {message && (
-                    <div className={`mb-6 p-4 rounded-2xl text-sm font-semibold shadow-sm border animate-in fade-in duration-500 ${message.type === 'success'
-                        ? 'bg-green-50 text-green-700 border-green-100'
-                        : 'bg-red-50 text-red-700 border-red-100'
-                        }`}>
-                        {message.text}
-                    </div>
-                )}
 
                 {mode === 'register' ? (
                     <RegisterForm onSubmit={handleRegister} isLoading={isLoading} />
