@@ -24,7 +24,7 @@ export class ImageController {
             const images = await this._imageService.uploadImages(userId, imageData);
             res.status(HttpStatus.CREATED).json(images);
         } catch (error) {
-            console.error('Upload error:', error);
+         
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Failed to upload images' });
         }
     };
@@ -32,11 +32,9 @@ export class ImageController {
     getImages = async (req: Request, res: Response) => {
         try {
             const userId = (req as any).user.id;
-            console.log('Fetching images for user:', userId);
             const images = await this._imageService.getUserImages(userId);
             res.status(HttpStatus.OK).json(images);
         } catch (error) {
-            console.error('Fetch images error:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Failed to fetch images' });
         }
     };
@@ -67,7 +65,6 @@ export class ImageController {
                 res.status(HttpStatus.NOT_FOUND).json({ message: 'Image not found' });
             }
         } catch (error) {
-            console.error('Update error:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Failed to update image' });
         }
     };
@@ -78,7 +75,6 @@ export class ImageController {
             await this._imageService.reorderImages(updates);
             res.status(HttpStatus.OK).json({ message: 'Images reordered' });
         } catch (error) {
-            console.error('Reorder error:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Failed to reorder images' });
         }
     };

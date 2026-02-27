@@ -9,7 +9,7 @@ export class UserController {
 
     register = async (req: Request, res: Response): Promise<void> => {
         try {
-            console.log('Registering user...');
+         
             const userData: IUser = req.body;
             const success = await this._registerService.register(userData);
 
@@ -42,7 +42,7 @@ export class UserController {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
-                maxAge: 24 * 60 * 60 * 1000 
+                maxAge: 24 * 60 * 60 * 1000
             });
 
             res.status(HttpStatus.OK).json({
@@ -57,6 +57,22 @@ export class UserController {
             res.status(HttpStatus.UNAUTHORIZED).json({
                 message: errorMessage,
             });
+        }
+    }
+
+    logout = async (_req: Request, res: Response): Promise<void> => {
+        res.clearCookie('token');
+        res.status(HttpStatus.OK).json({
+            message: 'Logged out successfully',
+        });
+    }
+
+    getMe = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const user = (req as any).user;
+            res.status(HttpStatus.OK).json({ user });
+        } catch (error) {
+            res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Unauthorized' });
         }
     }
 }
