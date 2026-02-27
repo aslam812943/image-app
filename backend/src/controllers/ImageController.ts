@@ -1,19 +1,20 @@
 import { Request, Response } from 'express';
 import { ImageService } from '../services/ImageService.js';
 import { HttpStatus } from '../constants/HttpStatus.js';
+import { IMAGE_MESSAGES } from '../constants/MessageConstants.js';
 
 export class ImageController {
     constructor(private _imageService: ImageService) { }
 
     upload = async (req: Request, res: Response) => {
         try {
-            const userId = (req as any).user.id;
+            const userId = req.user!.id!;
 
             const files = req.files as Express.Multer.File[];
-            const titles = JSON.parse(req.body.titles);
+            const titles = req.body.titles ? JSON.parse(req.body.titles) : [];
 
             if (!files || files.length === 0) {
-                return res.status(HttpStatus.BAD_REQUEST).json({ message: 'No files uploaded' });
+                return res.status(HttpStatus.BAD_REQUEST).json({ message: IMAGE_MESSAGES.NO_FILES });
             }
 
             const imageData = files.map((file, index) => ({
@@ -24,18 +25,17 @@ export class ImageController {
             const images = await this._imageService.uploadImages(userId, imageData);
             res.status(HttpStatus.CREATED).json(images);
         } catch (error) {
-         
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Failed to upload images' });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: IMAGE_MESSAGES.UPLOAD_FAILED });
         }
     };
 
     getImages = async (req: Request, res: Response) => {
         try {
-            const userId = (req as any).user.id;
+            const userId = req.user!.id!;
             const images = await this._imageService.getUserImages(userId);
             res.status(HttpStatus.OK).json(images);
         } catch (error) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Failed to fetch images' });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: IMAGE_MESSAGES.FETCH_FAILED });
         }
     };
 
@@ -55,17 +55,17 @@ export class ImageController {
             if (file) updates.imageUrl = `/uploads/${file.filename}`;
 
             if (!id || (Object.keys(updates).length === 0)) {
-                return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Update data required' });
+                return res.status(HttpStatus.BAD_REQUEST).json({ message: IMAGE_MESSAGES.UPDATE_DATA_REQUIRED });
             }
 
             const updatedImage = await this._imageService.updateImage(id as string, updates);
             if (updatedImage) {
                 res.status(HttpStatus.OK).json(updatedImage);
             } else {
-                res.status(HttpStatus.NOT_FOUND).json({ message: 'Image not found' });
+                res.status(HttpStatus.NOT_FOUND).json({ message: IMAGE_MESSAGES.NOT_FOUND });
             }
         } catch (error) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Failed to update image' });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: IMAGE_MESSAGES.UPDATE_FAILED });
         }
     };
 
@@ -73,9 +73,9 @@ export class ImageController {
         try {
             const { updates } = req.body;
             await this._imageService.reorderImages(updates);
-            res.status(HttpStatus.OK).json({ message: 'Images reordered' });
+            res.status(HttpStatus.OK).json({ message: IMAGE_MESSAGES.REORDER_SUCCESS });
         } catch (error) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Failed to reorder images' });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: IMAGE_MESSAGES.REORDER_FAILED });
         }
     };
 
@@ -83,16 +83,16 @@ export class ImageController {
         try {
             const { id } = req.params;
             if (!id || typeof id !== 'string') {
-                return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid image ID' });
+                return res.status(HttpStatus.BAD_REQUEST).json({ message: IMAGE_MESSAGES.INVALID_ID });
             }
             const success = await this._imageService.deleteImage(id);
             if (success) {
-                res.status(HttpStatus.OK).json({ message: 'Image deleted' });
+                res.status(HttpStatus.OK).json({ message: IMAGE_MESSAGES.DELETE_SUCCESS });
             } else {
-                res.status(HttpStatus.NOT_FOUND).json({ message: 'Image not found' });
+                res.status(HttpStatus.NOT_FOUND).json({ message: IMAGE_MESSAGES.NOT_FOUND });
             }
         } catch (error) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Failed to delete image' });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: IMAGE_MESSAGES.DELETE_FAILED });
         }
     };
 }
