@@ -25,7 +25,7 @@ export class ImageRepository implements IImageRepository {
     }
 
     async update(id: string, imageData: Partial<IImage>): Promise<IImage | null> {
-        const updatedImage = await Image.findByIdAndUpdate(id, imageData, { new: true });
+        const updatedImage = await Image.findByIdAndUpdate(id, imageData, { returnDocument: 'after' });
         return updatedImage ? this.mapToIImage(updatedImage) : null;
     }
 

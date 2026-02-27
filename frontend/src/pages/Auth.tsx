@@ -6,16 +6,27 @@ import { authService } from '../services/api';
 import type { IRegisterData, ILoginData } from '../types/auth.types';
 import axios from 'axios';
 import { showToast } from '../utils/toast';
+import { useAuth } from '../context/AuthContext';
 
 const Auth: React.FC = () => {
     const [mode, setMode] = useState<'login' | 'register'>('register');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const { login, user, loading } = useAuth();
+
+    React.useEffect(() => {
+        if (!loading && user) {
+            navigate('/', { replace: true });
+        }
+    }, [user, loading, navigate]);
 
     const handleLogin = async (formData: ILoginData) => {
         setIsLoading(true);
         try {
             const response = await authService.login(formData);
+            if (response.user) {
+                login(response.user);
+            }
             showToast('success', response.message || 'Login successful!');
             setTimeout(() => {
                 navigate('/');

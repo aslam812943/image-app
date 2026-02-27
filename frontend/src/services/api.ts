@@ -18,6 +18,14 @@ export const authService = {
     login: async (userData: ILoginData): Promise<IAuthResponse> => {
         const response = await api.post<IAuthResponse>(API_ROUTES.USER_LOGIN, userData)
         return response.data
+    },
+    logout: async (): Promise<IAuthResponse> => {
+        const response = await api.post<IAuthResponse>(API_ROUTES.USER_LOGOUT);
+        return response.data;
+    },
+    getMe: async (): Promise<{ user: any }> => {
+        const response = await api.get<{ user: any }>(API_ROUTES.USER_ME);
+        return response.data;
     }
 };
 

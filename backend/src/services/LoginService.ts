@@ -33,7 +33,7 @@ export class LoginService implements ILoginService {
         const { password: _, ...userWithoutPassword } = user;
 
         const token = jwt.sign(
-            { id: user.id, email: user.email },
+            { id: user.id, email: user.email, username: user.username },
             process.env.JWT_SECRET || 'secret',
             { expiresIn: '1d' }
         );
