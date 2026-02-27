@@ -3,10 +3,11 @@ import type { ILoginData } from "../../types/auth.types";
 
 interface LoginFormProps {
     onSubmit: (data: ILoginData) => Promise<void>;
+    onForgotPassword: () => void;
     isLoading: boolean;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, onForgotPassword, isLoading }) => {
     const [formData, setFormData] = useState({
         identifier: '',
         password: ''
@@ -80,6 +81,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
                         }`}
                 />
                 {errors.password && <p className="text-[11px] text-red-500 font-bold ml-1">{errors.password}</p>}
+                <div className="flex justify-end">
+                    <button
+                        type="button"
+                        onClick={onForgotPassword}
+                        className="text-[11px] text-indigo-600 font-bold hover:underline"
+                    >
+                        Forgot Password?
+                    </button>
+                </div>
             </div>
 
             <button
@@ -95,14 +105,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
                 ) : 'Log In'}
             </button>
 
-            <div className="relative my-2">
-                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-gray-100"></span></div>
-                <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-gray-300 font-bold tracking-widest">Or</span></div>
-            </div>
 
-            <p className="text-center text-xs text-gray-400 font-bold uppercase tracking-widest">
-                Don't have an account? <span className="text-indigo-600 cursor-pointer hover:underline">Sign Up</span>
-            </p>
+
+
         </form>
     );
 };

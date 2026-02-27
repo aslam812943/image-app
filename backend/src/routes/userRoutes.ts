@@ -4,16 +4,20 @@ import { RegisterService } from '../services/RegisterService.js';
 import { UserRepository } from '../repositories/UserRepository.js';
 import { LoginService } from '../services/LoginService.js';
 import { authMiddleware } from '../middleware/AuthMiddleware.js';
+import { PasswordResetService } from '../services/PasswordResetService.js';
 const router = express.Router();
 
-// Dependency Injection Setup
+
 const userRepository = new UserRepository();
 const registerService = new RegisterService(userRepository);
-const loginService = new LoginService(userRepository)
-const userController = new UserController(registerService, loginService);
+const loginService = new LoginService(userRepository);
+const passwordResetService = new PasswordResetService(userRepository);
+const userController = new UserController(registerService, loginService, passwordResetService);
 
 router.post('/register', userController.register);
 router.post('/login', userController.login);
 router.post('/logout', userController.logout);
 router.get('/me', authMiddleware, userController.getMe);
+router.post('/verify-email', userController.verifyIdentity);
+router.post('/reset-password', userController.resetPassword);
 export default router;

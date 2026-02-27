@@ -9,7 +9,7 @@ interface RegisterFormProps {
 const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading }) => {
     const [formData, setFormData] = useState({
         username: '',
-        identifier: '', 
+        identifier: '',
         password: '',
     });
 
@@ -38,22 +38,35 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading }) => {
         // Simple validation
         const newErrors: Partial<Record<keyof IRegisterData | 'identifier', string>> = {};
         if (!formData.username) newErrors.username = 'Username is required';
-        if (!formData.identifier) newErrors.identifier = 'Email or Phone is required';
-        if (!formData.password) newErrors.password = 'Password is required';
+
+        if (!formData.identifier) {
+            newErrors.identifier = 'Email or Phone is required';
+        } else {
+            // Determine if identifier is email or phone
+            const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.identifier);
+            const isPhone = /^\d+$/.test(formData.identifier);
+
+            if (!isEmail && !isPhone) {
+                newErrors.identifier = 'Please enter a valid email or phone number';
+            } else if (isPhone && formData.identifier.length !== 10) {
+                newErrors.identifier = 'Phone number must be exactly 10 digits';
+            }
+        }
+
+        if (!formData.password) {
+            newErrors.password = 'Password is required';
+        } else if (formData.password.length < 4) {
+            newErrors.password = 'Password must be at least 4 characters';
+        }
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
         }
 
-        // Determine if identifier is email or phone
+        // Determine if identifier is email or phone for payload
         const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.identifier);
         const isPhone = /^\d+$/.test(formData.identifier);
-
-        if (!isEmail && !isPhone) {
-            setErrors({ identifier: 'Please enter a valid email or phone number' });
-            return;
-        }
 
         const payload: IRegisterData = {
             username: formData.username,
@@ -130,14 +143,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading }) => {
                 ) : 'Get Started'}
             </button>
 
-            <div className="relative my-2">
-                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-gray-100"></span></div>
-                <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-gray-300 font-bold tracking-widest">Or</span></div>
-            </div>
 
-            <p className="text-center text-xs text-gray-400 font-bold uppercase tracking-widest">
-                Have an account? <span className="text-indigo-600 cursor-pointer hover:underline">Log In</span>
-            </p>
         </form>
     );
 };

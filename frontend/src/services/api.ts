@@ -26,6 +26,14 @@ export const authService = {
     getMe: async (): Promise<{ user: any }> => {
         const response = await api.get<{ user: any }>(API_ROUTES.USER_ME);
         return response.data;
+    },
+    verifyEmail: async (data: { identifier: string | number }): Promise<{ message: string }> => {
+        const response = await api.post<{ message: string }>(API_ROUTES.USER_VERIFY_EMAIL, data);
+        return response.data;
+    },
+    resetPassword: async (data: { identifier: string | number; password: string }): Promise<{ message: string }> => {
+        const response = await api.post<{ message: string }>(API_ROUTES.USER_RESET_PASSWORD, data);
+        return response.data;
     }
 };
 

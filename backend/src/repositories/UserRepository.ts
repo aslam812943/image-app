@@ -24,6 +24,12 @@ export class UserRepository implements IUserRepository {
         return user ? this.mapToIUser(user) : null;
     }
 
+    async updatePassword(identifier: string | number, password: string): Promise<boolean> {
+        const query = typeof identifier === 'string' ? { email: identifier } : { phone: identifier };
+        const result = await User.updateOne(query, { $set: { password } });
+        return result.modifiedCount > 0;
+    }
+
     private mapToIUser(doc: any): IUser {
         const user: IUser = {
             id: doc._id.toString(),
