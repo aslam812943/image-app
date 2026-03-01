@@ -40,7 +40,7 @@ export function SortablePhoto({ image, onDelete, onEdit }: SortablePhotoProps) {
         >
             <div className="aspect-[4/3] overflow-hidden cursor-grab active:cursor-grabbing" {...attributes} {...listeners}>
                 <img
-                    src={`${BASE_URL}${image.imageUrl}`}
+                    src={image.imageUrl.startsWith('http') ? image.imageUrl : `${BASE_URL}${image.imageUrl}`}
                     alt={image.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     draggable={false}
