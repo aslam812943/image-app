@@ -17,7 +17,9 @@ interface ImageEditProps {
 const ImageEdit: React.FC<ImageEditProps> = ({ image, onUpdateSuccess, onClose }) => {
     const [title, setTitle] = useState(image.title);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string>(`${BASE_URL}${image.imageUrl}`);
+    const [previewUrl, setPreviewUrl] = useState<string>(
+        image.imageUrl.startsWith('http') ? image.imageUrl : `${BASE_URL}${image.imageUrl}`
+    );
     const [updating, setUpdating] = useState(false);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

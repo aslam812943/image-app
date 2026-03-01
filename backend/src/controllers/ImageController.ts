@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { ImageService } from '../services/ImageService.js';
 import { HttpStatus } from '../constants/HttpStatus.js';
 import { IMAGE_MESSAGES } from '../constants/MessageConstants.js';
+import cloudinary from '../config/cloudinaryConfig.js';
+import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 
 export class ImageController {
     constructor(private _imageService: ImageService) { }
@@ -17,15 +19,34 @@ export class ImageController {
                 return res.status(HttpStatus.BAD_REQUEST).json({ message: IMAGE_MESSAGES.NO_FILES });
             }
 
-            const imageData = files.map((file, index) => ({
+            const uploadPromises = files.map((file) => {
+                return new Promise<string>((resolve, reject) => {
+                    const uploadStream = cloudinary.uploader.upload_stream(
+                        { folder: 'image-app' },
+                        (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
+                            if (error) return reject(error);
+                            resolve(result!.secure_url);
+                        }
+                    );
+                    uploadStream.end(file.buffer);
+                });
+            });
+
+            const uploadedUrls = await Promise.all(uploadPromises);
+
+            const imageData = uploadedUrls.map((url, index) => ({
                 title: titles[index] || 'Untitled',
-                imageUrl: `/uploads/${file.filename}`,
+                imageUrl: url,
             }));
 
             const images = await this._imageService.uploadImages(userId, imageData);
             res.status(HttpStatus.CREATED).json(images);
         } catch (error) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: IMAGE_MESSAGES.UPLOAD_FAILED });
+            console.error('Cloudinary upload error full detail:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: IMAGE_MESSAGES.UPLOAD_FAILED,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
         }
     };
 
@@ -52,7 +73,20 @@ export class ImageController {
 
             const updates: ImageUpdates = {};
             if (title) updates.title = title;
-            if (file) updates.imageUrl = `/uploads/${file.filename}`;
+
+            if (file) {
+                const result = await new Promise<string>((resolve, reject) => {
+                    const uploadStream = cloudinary.uploader.upload_stream(
+                        { folder: 'image-app' },
+                        (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
+                            if (error) return reject(error);
+                            resolve(result!.secure_url);
+                        }
+                    );
+                    uploadStream.end(file.buffer);
+                });
+                updates.imageUrl = result;
+            }
 
             if (!id || (Object.keys(updates).length === 0)) {
                 return res.status(HttpStatus.BAD_REQUEST).json({ message: IMAGE_MESSAGES.UPDATE_DATA_REQUIRED });
@@ -65,6 +99,7 @@ export class ImageController {
                 res.status(HttpStatus.NOT_FOUND).json({ message: IMAGE_MESSAGES.NOT_FOUND });
             }
         } catch (error) {
+            console.error('Cloudinary update error:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: IMAGE_MESSAGES.UPDATE_FAILED });
         }
     };
