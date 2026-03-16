@@ -39,6 +39,7 @@ export const authService = {
 
 export const imageService = {
     upload: async (formData: FormData) => {
+        console.log(formData)
         const response = await api.post('images/upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });

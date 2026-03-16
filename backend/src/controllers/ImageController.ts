@@ -11,7 +11,7 @@ export class ImageController {
     upload = async (req: Request, res: Response) => {
         try {
             const userId = req.user!.id!;
-
+console.log(req.files)
             const files = req.files as Express.Multer.File[];
             const titles = req.body.titles ? JSON.parse(req.body.titles) : [];
 

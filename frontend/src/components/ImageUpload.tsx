@@ -11,6 +11,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, onClose }) =
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [titles, setTitles] = useState<string[]>([]);
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -41,21 +42,40 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, onClose }) =
         }
 
         setUploading(true);
-        const formData = new FormData();
-        selectedFiles.forEach((file) => {
-            formData.append('images', file);
-        });
-        formData.append('titles', JSON.stringify(titles));
+        setUploadProgress(0);
+
+        const CHUNK_SIZE = 1;
+        const totalChunks = Math.ceil(selectedFiles.length / CHUNK_SIZE);
 
         try {
-            await imageService.upload(formData);
-            showToast('success', 'Images uploaded successfully!');
+            for (let i = 0; i < totalChunks; i++) {
+                const start = i * CHUNK_SIZE;
+                const end = Math.min(start + CHUNK_SIZE, selectedFiles.length);
+
+                const chunkFiles = selectedFiles.slice(start, end);
+                const chunkTitles = titles.slice(start, end);
+
+                const formData = new FormData();
+                chunkFiles.forEach((file) => {
+                    formData.append('images', file);
+                });
+                formData.append('titles', JSON.stringify(chunkTitles));
+
+                await imageService.upload(formData);
+
+                const progress = Math.round(((i + 1) / totalChunks) * 100);
+                setUploadProgress(progress);
+            }
+
+            showToast('success', 'All images uploaded successfully!');
             onUploadSuccess();
             onClose();
         } catch (error) {
-            showToast('error', 'Upload failed');
+            console.error('Upload error:', error);
+            showToast('error', 'Upload failed. Please try again.');
         } finally {
             setUploading(false);
+            setUploadProgress(0);
         }
     };
 
@@ -134,12 +154,17 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, onClose }) =
                     <button
                         onClick={handleUpload}
                         disabled={uploading || selectedFiles.length === 0}
-                        className={`px-8 py-2 rounded-lg text-white font-semibold transition-all shadow-lg ${uploading || selectedFiles.length === 0
+                        className={`px-8 py-2 rounded-lg text-white font-semibold transition-all shadow-lg min-w-[140px] ${uploading || selectedFiles.length === 0
                             ? 'bg-gray-400 cursor-not-allowed'
                             : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 active:scale-95 shadow-blue-200'
                             }`}
                     >
-                        {uploading ? 'Uploading...' : 'Upload All'}
+                        {uploading ? (
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                <span>{uploadProgress}%</span>
+                            </div>
+                        ) : 'Upload All'}
                     </button>
                 </div>
             </div>
