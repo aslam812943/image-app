@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { BASE_URL } from '../services/api';
@@ -15,7 +16,7 @@ interface SortablePhotoProps {
     onEdit?: (image: any) => void;
 }
 
-export function SortablePhoto({ image, onDelete, onEdit }: SortablePhotoProps) {
+export const SortablePhoto = memo(({ image, onDelete, onEdit }: SortablePhotoProps) => {
     const {
         attributes,
         listeners,
@@ -86,4 +87,4 @@ export function SortablePhoto({ image, onDelete, onEdit }: SortablePhotoProps) {
             </div>
         </div>
     );
-}
+});

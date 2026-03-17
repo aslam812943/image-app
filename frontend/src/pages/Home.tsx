@@ -1,9 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo, lazy, Suspense } from 'react';
 import { imageService } from '../services/api';
 import { showToast } from '../utils/toast';
-import ImageUpload from '../components/ImageUpload';
-import ImageEdit from '../components/ImageEdit';
-import ConfirmModal from '../components/common/ConfirmModal';
 import {
     DndContext,
     closestCenter,
@@ -21,6 +18,10 @@ import {
 } from '@dnd-kit/sortable';
 import { SortablePhoto } from '../components/SortablePhoto';
 import { useAuth } from '../context/AuthContext';
+
+const ImageUpload = lazy(() => import('../components/ImageUpload'));
+const ImageEdit = lazy(() => import('../components/ImageEdit'));
+const ConfirmModal = lazy(() => import('../components/common/ConfirmModal'));
 
 interface Image {
     id: string;
@@ -49,7 +50,7 @@ const Home = () => {
         })
     );
 
-    const fetchImages = async () => {
+    const fetchImages = useCallback(async () => {
         try {
             const data = await imageService.getImages();
             setImages(data);
@@ -59,34 +60,34 @@ const Home = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchImages();
+    }, [fetchImages]);
+
+    const handleDelete = useCallback((id: string) => {
+        setImageToDelete(id);
     }, []);
 
-    const handleDelete = (id: string) => {
-        setImageToDelete(id);
-    };
-
-    const confirmDelete = async () => {
+    const confirmDelete = useCallback(async () => {
         if (!imageToDelete) return;
         try {
             await imageService.delete(imageToDelete);
-            setImages(images.filter((img) => img.id !== imageToDelete));
+            setImages(prev => prev.filter((img) => img.id !== imageToDelete));
             showToast('success', 'Image deleted successfully');
         } catch (error) {
             showToast('error', 'Delete failed');
         } finally {
             setImageToDelete(null);
         }
-    };
+    }, [imageToDelete]);
 
-    const handleEdit = (image: Image) => {
+    const handleEdit = useCallback((image: Image) => {
         setEditingImage(image);
-    };
+    }, []);
 
-    const handleDragEnd = (event: DragEndEvent) => {
+    const handleDragEnd = useCallback((event: DragEndEvent) => {
         const { active, over } = event;
 
         if (over && active.id !== over.id) {
@@ -98,9 +99,9 @@ const Home = () => {
                 return newArray;
             });
         }
-    };
+    }, []);
 
-    const saveOrder = async () => {
+    const saveOrder = useCallback(async () => {
         try {
             const updates = images.map((img, index) => ({
                 id: img.id,
@@ -112,7 +113,9 @@ const Home = () => {
         } catch (error) {
             showToast('error', 'Failed to save order');
         }
-    };
+    }, [images]);
+
+    const sortableItems = useMemo(() => images.map(img => img.id), [images]);
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
@@ -177,7 +180,7 @@ const Home = () => {
                         onDragEnd={handleDragEnd}
                     >
                         <SortableContext
-                            items={images.map(img => img.id)}
+                            items={sortableItems}
                             strategy={rectSortingStrategy}
                         >
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -211,28 +214,30 @@ const Home = () => {
                 )}
             </main>
 
-            {showUpload && (
-                <ImageUpload
-                    onUploadSuccess={fetchImages}
-                    onClose={() => setShowUpload(false)}
-                />
-            )}
+            <Suspense fallback={null}>
+                {showUpload && (
+                    <ImageUpload
+                        onUploadSuccess={fetchImages}
+                        onClose={() => setShowUpload(false)}
+                    />
+                )}
 
-            {editingImage && (
-                <ImageEdit
-                    image={editingImage}
-                    onUpdateSuccess={fetchImages}
-                    onClose={() => setEditingImage(null)}
-                />
-            )}
+                {editingImage && (
+                    <ImageEdit
+                        image={editingImage}
+                        onUpdateSuccess={fetchImages}
+                        onClose={() => setEditingImage(null)}
+                    />
+                )}
 
-            <ConfirmModal
-                isOpen={!!imageToDelete}
-                title="Delete Image"
-                message="Are you sure you want to delete this image? This action cannot be undone."
-                onConfirm={confirmDelete}
-                onCancel={() => setImageToDelete(null)}
-            />
+                <ConfirmModal
+                    isOpen={!!imageToDelete}
+                    title="Delete Image"
+                    message="Are you sure you want to delete this image? This action cannot be undone."
+                    onConfirm={confirmDelete}
+                    onCancel={() => setImageToDelete(null)}
+                />
+            </Suspense>
         </div>
     );
 };

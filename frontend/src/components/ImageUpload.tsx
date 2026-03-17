@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { imageService } from '../services/api';
 import { showToast } from '../utils/toast';
 
@@ -12,27 +12,43 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, onClose }) =
     const [titles, setTitles] = useState<string[]>([]);
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [previews, setPreviews] = useState<string[]>([]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    useEffect(() => {
+        return () => {
+            previews.forEach(url => URL.revokeObjectURL(url));
+        };
+    }, [previews]);
+
+    const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const filesArray = Array.from(e.target.files);
+            const newPreviews = filesArray.map(file => URL.createObjectURL(file));
+
             setSelectedFiles((prev) => [...prev, ...filesArray]);
+            setPreviews((prev) => [...prev, ...newPreviews]);
             setTitles((prev) => [...prev, ...filesArray.map(() => '')]);
         }
-    };
+    }, []);
 
-    const handleTitleChange = (index: number, value: string) => {
-        const newTitles = [...titles];
-        newTitles[index] = value;
-        setTitles(newTitles);
-    };
+    const handleTitleChange = useCallback((index: number, value: string) => {
+        setTitles((prev) => {
+            const newTitles = [...prev];
+            newTitles[index] = value;
+            return newTitles;
+        });
+    }, []);
 
-    const handleRemoveFile = (index: number) => {
-        setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
-        setTitles(titles.filter((_, i) => i !== index));
-    };
+    const handleRemoveFile = useCallback((index: number) => {
+        setPreviews((prev) => {
+            URL.revokeObjectURL(prev[index]);
+            return prev.filter((_, i) => i !== index);
+        });
+        setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+        setTitles((prev) => prev.filter((_, i) => i !== index));
+    }, []);
 
-    const handleUpload = async () => {
+    const handleUpload = useCallback(async () => {
         if (selectedFiles.length === 0) return;
 
         const hasEmptyTitle = titles.some(title => !title.trim());
@@ -71,13 +87,12 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, onClose }) =
             onUploadSuccess();
             onClose();
         } catch (error) {
-            console.error('Upload error:', error);
             showToast('error', 'Upload failed. Please try again.');
         } finally {
             setUploading(false);
             setUploadProgress(0);
         }
-    };
+    }, [selectedFiles, titles, onUploadSuccess, onClose]);
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -114,10 +129,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, onClose }) =
 
                 <div className="space-y-4 mb-6">
                     {selectedFiles.map((file, index) => (
-                        <div key={index} className="flex gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100 group">
+                        <div key={`${file.name}-${file.lastModified}-${index}`} className="flex gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100 group">
                             <div className="w-16 h-16 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
                                 <img
-                                    src={URL.createObjectURL(file)}
+                                    src={previews[index]}
                                     alt="preview"
                                     className="w-full h-full object-cover"
                                 />
