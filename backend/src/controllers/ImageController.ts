@@ -1,17 +1,17 @@
 import { Request, Response } from 'express';
-import { ImageService } from '../services/ImageService.js';
+import { IImageService } from '../services/interfaces/IImageService.js';
 import { HttpStatus } from '../constants/HttpStatus.js';
 import { IMAGE_MESSAGES } from '../constants/MessageConstants.js';
 import cloudinary from '../config/cloudinaryConfig.js';
 import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 
 export class ImageController {
-    constructor(private _imageService: ImageService) { }
+    constructor(private _imageService: IImageService) { }
 
     upload = async (req: Request, res: Response) => {
         try {
-            const userId = req.user!.id!;
-console.log(req.files)
+            const userId = req.user!.userId!;
+            console.log(req.files)
             const files = req.files as Express.Multer.File[];
             const titles = req.body.titles ? JSON.parse(req.body.titles) : [];
 
@@ -52,7 +52,7 @@ console.log(req.files)
 
     getImages = async (req: Request, res: Response) => {
         try {
-            const userId = req.user!.id!;
+            const userId = req.user!.userId!;
             const images = await this._imageService.getUserImages(userId);
             res.status(HttpStatus.OK).json(images);
         } catch (error) {
@@ -62,7 +62,7 @@ console.log(req.files)
 
     update = async (req: Request, res: Response) => {
         try {
-            const { id } = req.params;
+            const { imageId } = req.params;
             const { title } = req.body;
             const file = req.file as Express.Multer.File;
 
@@ -88,18 +88,17 @@ console.log(req.files)
                 updates.imageUrl = result;
             }
 
-            if (!id || (Object.keys(updates).length === 0)) {
+            if (!imageId || (Object.keys(updates).length === 0)) {
                 return res.status(HttpStatus.BAD_REQUEST).json({ message: IMAGE_MESSAGES.UPDATE_DATA_REQUIRED });
             }
 
-            const updatedImage = await this._imageService.updateImage(id as string, updates);
+            const updatedImage = await this._imageService.updateImage(imageId as string, updates);
             if (updatedImage) {
                 res.status(HttpStatus.OK).json(updatedImage);
             } else {
                 res.status(HttpStatus.NOT_FOUND).json({ message: IMAGE_MESSAGES.NOT_FOUND });
             }
         } catch (error) {
-            console.error('Cloudinary update error:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: IMAGE_MESSAGES.UPDATE_FAILED });
         }
     };
@@ -116,11 +115,11 @@ console.log(req.files)
 
     deleteImage = async (req: Request, res: Response) => {
         try {
-            const { id } = req.params;
-            if (!id || typeof id !== 'string') {
+            const { imageId } = req.params;
+            if (!imageId || typeof imageId !== 'string') {
                 return res.status(HttpStatus.BAD_REQUEST).json({ message: IMAGE_MESSAGES.INVALID_ID });
             }
-            const success = await this._imageService.deleteImage(id);
+            const success = await this._imageService.deleteImage(imageId);
             if (success) {
                 res.status(HttpStatus.OK).json({ message: IMAGE_MESSAGES.DELETE_SUCCESS });
             } else {

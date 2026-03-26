@@ -21,10 +21,10 @@ export class ImageService implements IImageService {
         return await this.imageRepository.createMany(imagesToCreate);
     }
 
-    async updateImage(id: string, updates: { title?: string, imageUrl?: string }): Promise<IImage | null> {
+    async updateImage(imageId: string, updates: { title?: string, imageUrl?: string }): Promise<IImage | null> {
 
         if (updates.imageUrl) {
-            const currentImage = await this.imageRepository.findById(id);
+            const currentImage = await this.imageRepository.findById(imageId);
             if (currentImage && currentImage.imageUrl) {
                 const oldPath = path.join(process.cwd(), currentImage.imageUrl);
                 if (fs.existsSync(oldPath)) {
@@ -32,14 +32,14 @@ export class ImageService implements IImageService {
                 }
             }
         }
-        return await this.imageRepository.update(id, updates);
+        return await this.imageRepository.update(imageId, updates);
     }
 
-    async updateImageTitle(id: string, title: string): Promise<IImage | null> {
-        return await this.imageRepository.update(id, { title });
+    async updateImageTitle(imageId: string, title: string): Promise<IImage | null> {
+        return await this.imageRepository.update(imageId, { title });
     }
 
-    async reorderImages(updates: { id: string; order: number }[]): Promise<void> {
+    async reorderImages(updates: { imageId: string; order: number }[]): Promise<void> {
         await this.imageRepository.updateOrder(updates);
     }
 
@@ -47,7 +47,7 @@ export class ImageService implements IImageService {
         return await this.imageRepository.findByUserId(userId);
     }
 
-    async deleteImage(id: string): Promise<boolean> {
-        return await this.imageRepository.deleteById(id);
+    async deleteImage(imageId: string): Promise<boolean> {
+        return await this.imageRepository.deleteById(imageId);
     }
 }

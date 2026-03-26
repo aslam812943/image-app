@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo, lazy, Suspense } from 'react';
 import { imageService } from '../services/api';
+import type { IImage } from '../types/auth.types';
 import { showToast } from '../utils/toast';
 import {
     DndContext,
@@ -23,17 +24,10 @@ const ImageUpload = lazy(() => import('../components/ImageUpload'));
 const ImageEdit = lazy(() => import('../components/ImageEdit'));
 const ConfirmModal = lazy(() => import('../components/common/ConfirmModal'));
 
-interface Image {
-    id: string;
-    title: string;
-    imageUrl: string;
-    createdAt: string;
-}
-
 const Home = () => {
-    const [images, setImages] = useState<Image[]>([]);
+    const [images, setImages] = useState<IImage[]>([]);
     const [showUpload, setShowUpload] = useState(false);
-    const [editingImage, setEditingImage] = useState<Image | null>(null);
+    const [editingImage, setEditingImage] = useState<IImage | null>(null);
     const [imageToDelete, setImageToDelete] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [hasOrderChanged, setHasOrderChanged] = useState(false);
@@ -74,7 +68,7 @@ const Home = () => {
         if (!imageToDelete) return;
         try {
             await imageService.delete(imageToDelete);
-            setImages(prev => prev.filter((img) => img.id !== imageToDelete));
+            setImages(prev => prev.filter((img) => img.imageId !== imageToDelete));
             showToast('success', 'Image deleted successfully');
         } catch (error) {
             showToast('error', 'Delete failed');
@@ -83,7 +77,7 @@ const Home = () => {
         }
     }, [imageToDelete]);
 
-    const handleEdit = useCallback((image: Image) => {
+    const handleEdit = useCallback((image: IImage) => {
         setEditingImage(image);
     }, []);
 
@@ -92,8 +86,8 @@ const Home = () => {
 
         if (over && active.id !== over.id) {
             setImages((items) => {
-                const oldIndex = items.findIndex((i) => i.id === active.id);
-                const newIndex = items.findIndex((i) => i.id === over.id);
+                const oldIndex = items.findIndex((i) => i.imageId === active.id);
+                const newIndex = items.findIndex((i) => i.imageId === over.id);
                 const newArray = arrayMove(items, oldIndex, newIndex);
                 setHasOrderChanged(true);
                 return newArray;
@@ -104,7 +98,7 @@ const Home = () => {
     const saveOrder = useCallback(async () => {
         try {
             const updates = images.map((img, index) => ({
-                id: img.id,
+                imageId: img.imageId,
                 order: index
             }));
             await imageService.reorder(updates);
@@ -115,7 +109,7 @@ const Home = () => {
         }
     }, [images]);
 
-    const sortableItems = useMemo(() => images.map(img => img.id), [images]);
+    const sortableItems = useMemo(() => images.map(img => img.imageId), [images]);
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
@@ -186,7 +180,7 @@ const Home = () => {
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                                 {images.map((image) => (
                                     <SortablePhoto
-                                        key={image.id}
+                                        key={image.imageId}
                                         image={image}
                                         onDelete={handleDelete}
                                         onEdit={handleEdit}

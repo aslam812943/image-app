@@ -1,15 +1,10 @@
 import React, { useState } from 'react';
 import { imageService, BASE_URL } from '../services/api';
+import type { IImage } from '../types/auth.types';
 import { showToast } from '../utils/toast';
 
-interface Image {
-    id: string;
-    title: string;
-    imageUrl: string;
-}
-
 interface ImageEditProps {
-    image: Image;
+    image: IImage;
     onUpdateSuccess: () => void;
     onClose: () => void;
 }
@@ -44,7 +39,7 @@ const ImageEdit: React.FC<ImageEditProps> = ({ image, onUpdateSuccess, onClose }
         }
 
         try {
-            await imageService.update(image.id, formData);
+            await imageService.update(image.imageId, formData);
             showToast('success', 'Changes saved successfully!');
             onUpdateSuccess();
             onClose();

@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { IRegisterData, ILoginData, IAuthResponse } from "../types/auth.types";
+import type { IRegisterData, ILoginData, IAuthResponse, IUser, IImage } from "../types/auth.types";
 import { API_ROUTES } from "../constants/RouteConstants";
 
 export const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -23,8 +23,8 @@ export const authService = {
         const response = await api.post<IAuthResponse>(API_ROUTES.USER_LOGOUT);
         return response.data;
     },
-    getMe: async (): Promise<{ user: any }> => {
-        const response = await api.get<{ user: any }>(API_ROUTES.USER_ME);
+    getMe: async (): Promise<{ user: IUser }> => {
+        const response = await api.get<{ user: IUser }>(API_ROUTES.USER_ME);
         return response.data;
     },
     verifyEmail: async (data: { identifier: string | number }): Promise<{ message: string }> => {
@@ -38,33 +38,32 @@ export const authService = {
 };
 
 export const imageService = {
-    upload: async (formData: FormData) => {
-        console.log(formData)
-        const response = await api.post('images/upload', formData, {
+    upload: async (formData: FormData): Promise<IImage[]> => {
+        const response = await api.post<IImage[]>(API_ROUTES.IMAGES_UPLOAD, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
         return response.data;
     },
 
-    getImages: async () => {
-        const response = await api.get('images');
+    getImages: async (): Promise<IImage[]> => {
+        const response = await api.get<IImage[]>(API_ROUTES.IMAGES_BASE);
         return response.data;
     },
 
-    update: async (id: string, formData: FormData) => {
-        const response = await api.patch(`images/${id}`, formData, {
+    update: async (imageId: string, formData: FormData): Promise<IImage> => {
+        const response = await api.patch<IImage>(`${API_ROUTES.IMAGES_BASE}/${imageId}`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
         return response.data;
     },
 
-    reorder: async (updates: { id: string; order: number }[]) => {
-        const response = await api.put('images/reorder', { updates });
+    reorder: async (updates: { imageId: string; order: number }[]): Promise<void> => {
+        const response = await api.put(API_ROUTES.IMAGES_REORDER, { updates });
         return response.data;
     },
 
-    delete: async (id: string) => {
-        const response = await api.delete(`images/${id}`);
+    delete: async (imageId: string): Promise<void> => {
+        const response = await api.delete(`${API_ROUTES.IMAGES_BASE}/${imageId}`);
         return response.data;
     }
 };

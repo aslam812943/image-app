@@ -1,23 +1,18 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { authService } from '../services/api';
-
-interface User {
-    id: string;
-    email?: string;
-    username: string;
-}
+import type { IUser } from '../types/auth.types';
 
 interface AuthContextType {
-    user: User | null;
+    user: IUser | null;
     loading: boolean;
-    login: (user: any) => void;
+    login: (user: IUser) => void;
     logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<IUser | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -32,9 +27,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         };
         checkAuth();
-    },[]);
+    }, []);
 
-    const login = (userData: User) => {
+    const login = (userData: IUser) => {
         setUser(userData);
     };
 

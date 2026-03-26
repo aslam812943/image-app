@@ -4,7 +4,7 @@ import { HttpStatus } from '../constants/HttpStatus.js';
 import { COMMON_MESSAGES } from '../constants/MessageConstants.js';
 
 interface DecodedToken {
-    id: string;
+    userId: string;
     email: string;
 }
 

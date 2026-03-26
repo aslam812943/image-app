@@ -2,6 +2,16 @@ import { IImage } from '../types/image.types.js';
 import Image from '../models/Image.js';
 import { IImageRepository } from './interfaces/IImageRepository.js';
 
+interface ImageDocument {
+    _id: { toString(): string };
+    userId: { toString(): string };
+    title: string;
+    imageUrl: string;
+    order: number;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
 export class ImageRepository implements IImageRepository {
     async create(imageData: IImage): Promise<IImage> {
         const newImage = new Image(imageData);
@@ -14,8 +24,8 @@ export class ImageRepository implements IImageRepository {
         return savedImages.map((img) => this.mapToIImage(img));
     }
 
-    async findById(id: string): Promise<IImage | null> {
-        const image = await Image.findById(id);
+    async findById(imageId: string): Promise<IImage | null> {
+        const image = await Image.findById(imageId);
         return image ? this.mapToIImage(image) : null;
     }
 
@@ -24,27 +34,27 @@ export class ImageRepository implements IImageRepository {
         return images.map((img) => this.mapToIImage(img));
     }
 
-    async update(id: string, imageData: Partial<IImage>): Promise<IImage | null> {
-        const updatedImage = await Image.findByIdAndUpdate(id, imageData, { returnDocument: 'after' });
+    async update(imageId: string, imageData: Partial<IImage>): Promise<IImage | null> {
+        const updatedImage = await Image.findByIdAndUpdate(imageId, imageData, { returnDocument: 'after' });
         return updatedImage ? this.mapToIImage(updatedImage) : null;
     }
 
-    async updateOrder(updates: { id: string; order: number }[]): Promise<void> {
+    async updateOrder(updates: { imageId: string; order: number }[]): Promise<void> {
         const bulkOps = updates.map((update) => ({
             updateOne: {
-                filter: { _id: update.id },
+                filter: { _id: update.imageId },
                 update: { $set: { order: update.order } },
             },
         }));
         await Image.bulkWrite(bulkOps);
     }
 
-    async deleteById(id: string): Promise<boolean> {
-        const result = await Image.findByIdAndDelete(id);
+    async deleteById(imageId: string): Promise<boolean> {
+        const result = await Image.findByIdAndDelete(imageId);
         return result !== null;
     }
 
-    private mapToIImage(doc: any): IImage {
+    private mapToIImage(doc: ImageDocument): IImage {
         const image: IImage = {
             id: doc._id.toString(),
             userId: doc.userId.toString(),
