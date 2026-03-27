@@ -2,6 +2,16 @@ import { IUser } from '../types/user.types.js';
 import User from '../models/User.js';
 import { IUserRepository } from './interfaces/IUserRepository.js';
 
+interface UserDocument {
+    _id: { toString(): string };
+    username: string;
+    email?: string;
+    phone?: number;
+    password?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
 export class UserRepository implements IUserRepository {
     async create(userData: IUser): Promise<IUser> {
         const newUser = new User(userData);
@@ -24,15 +34,15 @@ export class UserRepository implements IUserRepository {
         return user ? this.mapToIUser(user) : null;
     }
 
-    async updatePassword(identifier: string | number, password: string): Promise<boolean> {
-        const query = typeof identifier === 'string' ? { email: identifier } : { phone: identifier };
+    async updatePassword(emailOrPhone: string | number, password: string): Promise<boolean> {
+        const query = typeof emailOrPhone === 'string' ? { email: emailOrPhone } : { phone: emailOrPhone };
         const result = await User.updateOne(query, { $set: { password } });
         return result.modifiedCount > 0;
     }
 
-    private mapToIUser(doc: any): IUser {
+    private mapToIUser(doc: UserDocument): IUser {
         const user: IUser = {
-            id: doc._id.toString(),
+            userId: doc._id.toString(),
             username: doc.username,
         };
 

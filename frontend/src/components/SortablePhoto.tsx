@@ -2,18 +2,12 @@ import { memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { BASE_URL } from '../services/api';
-
-interface Image {
-    id: string;
-    title: string;
-    imageUrl: string;
-    createdAt: string;
-}
+import type { IImage } from '../types/auth.types';
 
 interface SortablePhotoProps {
-    image: Image;
-    onDelete: (id: string) => void;
-    onEdit?: (image: any) => void;
+    image: IImage;
+    onDelete: (imageId: string) => void;
+    onEdit?: (image: IImage) => void;
 }
 
 export const SortablePhoto = memo(({ image, onDelete, onEdit }: SortablePhotoProps) => {
@@ -24,7 +18,7 @@ export const SortablePhoto = memo(({ image, onDelete, onEdit }: SortablePhotoPro
         transform,
         transition,
         isDragging,
-    } = useSortable({ id: image.id });
+    } = useSortable({ id: image.imageId });
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -69,7 +63,7 @@ export const SortablePhoto = memo(({ image, onDelete, onEdit }: SortablePhotoPro
                             </svg>
                         </button>
                         <button
-                            onClick={() => onDelete(image.id)}
+                            onClick={() => onDelete(image.imageId)}
                             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,3 +1,21 @@
+export interface IUser {
+    userId: string;
+    username: string;
+    email?: string;
+    phone?: number;
+    createdAt?: string;
+}
+
+export interface IImage {
+    imageId: string;
+    userId: string;
+    title: string;
+    imageUrl: string;
+    order: number;
+    createdAt: string;
+    updatedAt?: string;
+}
+
 export interface IRegisterData {
     username: string;
     email?: string;
@@ -14,13 +32,7 @@ export interface ILoginData {
 
 export interface IAuthResponse {
     message: string;
-    user?: {
-        id: string;
-        username: string;
-        email?: string;
-        phone?: number;
-        createdAt?: string;
-    };
+    user?: IUser;
 }
 
 export interface IVerifyEmailRequest {

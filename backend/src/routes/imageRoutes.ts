@@ -18,8 +18,8 @@ const imageController = new ImageController(imageService);
 
 router.post('/upload', authMiddleware, upload.array('images'), imageController.upload);
 router.get('/', authMiddleware, imageController.getImages);
-router.patch('/:id', authMiddleware, upload.single('image'), imageController.update);
+router.patch('/:imageId', authMiddleware, upload.single('image'), imageController.update);
 router.put('/reorder', authMiddleware, imageController.reorder);
-router.delete('/:id', authMiddleware, imageController.deleteImage);
+router.delete('/:imageId', authMiddleware, imageController.deleteImage);
 
 export default router;

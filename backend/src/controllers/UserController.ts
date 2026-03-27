@@ -41,14 +41,14 @@ export class UserController {
 
     login = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { identifier, password } = req.body;
-            const { user, token } = await this._loginService.login(identifier, password);
+            const { emailOrUsername, password } = req.body;
+            const { user, token } = await this._loginService.login(emailOrUsername, password);
 
             res.cookie('token', token, {
                 httpOnly: true,
                 secure: true,
                 sameSite: 'none',
-                maxAge: 24 * 60 * 60 * 1000
+                maxAge: Number(process.env.COOKIE_MAX_AGE)
             });
 
             res.status(HttpStatus.OK).json({
@@ -88,8 +88,8 @@ export class UserController {
 
     verifyIdentity = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { identifier } = req.body;
-            const success = await this._passwordResetService.verifyIdentity(identifier);
+            const { emailOrPhone } = req.body;
+            const success = await this._passwordResetService.verifyIdentity(emailOrPhone);
             if (success) {
                 res.status(HttpStatus.OK).json({ message: COMMON_MESSAGES.EMAIL_VERIFIED });
             } else {
@@ -102,8 +102,8 @@ export class UserController {
 
     resetPassword = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { identifier, password } = req.body;
-            const success = await this._passwordResetService.resetPassword(identifier, password);
+            const { emailOrPhone, password } = req.body;
+            const success = await this._passwordResetService.resetPassword(emailOrPhone, password);
 
             if (success) {
                 res.status(HttpStatus.OK).json({ message: AUTH_MESSAGES.PASSWORD_RESET_SUCCESS });

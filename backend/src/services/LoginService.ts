@@ -8,15 +8,15 @@ import jwt from 'jsonwebtoken'
 export class LoginService implements ILoginService {
     constructor(private _userRepository: IUserRepository) { }
 
-    async login(identifier: string, password: string): Promise<{ user: IUser; token: string }> {
+    async login(emailOrUsername: string, password: string): Promise<{ user: IUser; token: string }> {
         let user: IUser | null = null;
 
 
-        if (identifier.includes('@')) {
-            user = await this._userRepository.findByEmail(identifier);
-        } else if (!isNaN(Number(identifier))) {
+        if (emailOrUsername.includes('@')) {
+            user = await this._userRepository.findByEmail(emailOrUsername);
+        } else if (!isNaN(Number(emailOrUsername))) {
 
-            user = await this._userRepository.findByPhone(Number(identifier));
+            user = await this._userRepository.findByPhone(Number(emailOrUsername));
         }
 
         if (!user || !user.password) {
@@ -33,7 +33,7 @@ export class LoginService implements ILoginService {
         const { password: _, ...userWithoutPassword } = user;
 
         const token = jwt.sign(
-            { id: user.id, email: user.email, username: user.username },
+            { userId: user.userId, email: user.email, username: user.username },
             process.env.JWT_SECRET || 'secret',
             { expiresIn: '1d' }
         );
