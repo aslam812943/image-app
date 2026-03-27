@@ -42,7 +42,6 @@ export class ImageController {
             const images = await this._imageService.uploadImages(userId, imageData);
             res.status(HttpStatus.CREATED).json(images);
         } catch (error) {
-            console.error('Cloudinary upload error full detail:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                 message: IMAGE_MESSAGES.UPLOAD_FAILED,
                 error: error instanceof Error ? error.message : 'Unknown error'
@@ -92,7 +91,8 @@ export class ImageController {
                 return res.status(HttpStatus.BAD_REQUEST).json({ message: IMAGE_MESSAGES.UPDATE_DATA_REQUIRED });
             }
 
-            const updatedImage = await this._imageService.updateImage(imageId as string, updates);
+            const userId = req.user!.userId!;
+            const updatedImage = await this._imageService.updateImage(imageId as string, userId, updates);
             if (updatedImage) {
                 res.status(HttpStatus.OK).json(updatedImage);
             } else {
@@ -106,7 +106,8 @@ export class ImageController {
     reorder = async (req: Request, res: Response) => {
         try {
             const { updates } = req.body;
-            await this._imageService.reorderImages(updates);
+            const userId = req.user!.userId!;
+            await this._imageService.reorderImages(userId, updates);
             res.status(HttpStatus.OK).json({ message: IMAGE_MESSAGES.REORDER_SUCCESS });
         } catch (error) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: IMAGE_MESSAGES.REORDER_FAILED });
@@ -119,7 +120,8 @@ export class ImageController {
             if (!imageId || typeof imageId !== 'string') {
                 return res.status(HttpStatus.BAD_REQUEST).json({ message: IMAGE_MESSAGES.INVALID_ID });
             }
-            const success = await this._imageService.deleteImage(imageId);
+            const userId = req.user!.userId!;
+            const success = await this._imageService.deleteImage(imageId, userId);
             if (success) {
                 res.status(HttpStatus.OK).json({ message: IMAGE_MESSAGES.DELETE_SUCCESS });
             } else {
