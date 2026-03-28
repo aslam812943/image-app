@@ -22,12 +22,20 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, onClose }) =
 
     const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            const filesArray = Array.from(e.target.files);
-            const newPreviews = filesArray.map(file => URL.createObjectURL(file));
+            const allFiles = Array.from(e.target.files);
+            const imageFiles = allFiles.filter(file => file.type.startsWith('image/'));
 
-            setSelectedFiles((prev) => [...prev, ...filesArray]);
+            if (imageFiles.length < allFiles.length) {
+                showToast('error', 'Only image files are allowed. Other files were skipped.');
+            }
+
+            if (imageFiles.length === 0) return;
+
+            const newPreviews = imageFiles.map(file => URL.createObjectURL(file));
+
+            setSelectedFiles((prev) => [...prev, ...imageFiles]);
             setPreviews((prev) => [...prev, ...newPreviews]);
-            setTitles((prev) => [...prev, ...filesArray.map(() => '')]);
+            setTitles((prev) => [...prev, ...imageFiles.map(() => '')]);
         }
     }, []);
 

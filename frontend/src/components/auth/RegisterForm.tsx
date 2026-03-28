@@ -35,9 +35,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading }) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Simple validation
+        // validation
         const newErrors: Partial<Record<keyof IRegisterData | 'identifier', string>> = {};
-        if (!formData.username) newErrors.username = 'Username is required';
+        const trimmedUsername = formData.username.trim();
+        if (!trimmedUsername) {
+            newErrors.username = 'Username is required';
+        } else if (trimmedUsername.length < 3) {
+            newErrors.username = 'Username must be at least 3 characters long';
+        }
 
         if (!formData.identifier) {
             newErrors.identifier = 'Email or Phone is required';

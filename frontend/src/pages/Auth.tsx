@@ -51,7 +51,7 @@ const Auth: React.FC = () => {
         setIsLoading(true);
         try {
             await authService.register(formData);
-            showToast('success', 'Registration successful! You can now log in.');
+            showToast('success', 'Registration successful');
             setMode('login');
         } catch (error: unknown) {
             let errorMessage = 'Registration failed. Please try again.';

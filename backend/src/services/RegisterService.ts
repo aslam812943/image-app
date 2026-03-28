@@ -25,7 +25,11 @@ export class RegisterService implements IRegisterService {
             }
         }
 
-   
+        if (!userData.username || userData.username.trim().length < 3) {
+            throw new Error('Username must be at least 3 characters long');
+        }
+        userData.username = userData.username.trim();
+
         if (!userData.password) {
             throw new Error(AUTH_MESSAGES.PASSWORD_REQUIRED);
         }
@@ -39,8 +43,8 @@ export class RegisterService implements IRegisterService {
 
         await this._userRepository.create(userToCreate);
 
-       
-       
+
+
         return true
     }
 }

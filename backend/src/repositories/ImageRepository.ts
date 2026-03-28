@@ -34,23 +34,23 @@ export class ImageRepository implements IImageRepository {
         return images.map((img) => this.mapToIImage(img));
     }
 
-    async update(imageId: string, imageData: Partial<IImage>): Promise<IImage | null> {
-        const updatedImage = await Image.findByIdAndUpdate(imageId, imageData, { returnDocument: 'after' });
+    async update(imageId: string, userId: string, imageData: Partial<IImage>): Promise<IImage | null> {
+        const updatedImage = await Image.findOneAndUpdate({ _id: imageId, userId }, imageData, { returnDocument: 'after' });
         return updatedImage ? this.mapToIImage(updatedImage) : null;
     }
 
-    async updateOrder(updates: { imageId: string; order: number }[]): Promise<void> {
+    async updateOrder(userId: string, updates: { imageId: string; order: number }[]): Promise<void> {
         const bulkOps = updates.map((update) => ({
             updateOne: {
-                filter: { _id: update.imageId },
+                filter: { _id: update.imageId, userId },
                 update: { $set: { order: update.order } },
             },
         }));
         await Image.bulkWrite(bulkOps);
     }
 
-    async deleteById(imageId: string): Promise<boolean> {
-        const result = await Image.findByIdAndDelete(imageId);
+    async deleteById(imageId: string, userId: string): Promise<boolean> {
+        const result = await Image.findOneAndDelete({ _id: imageId, userId });
         return result !== null;
     }
 

@@ -22,48 +22,30 @@ export class ImageService implements IImageService {
     }
 
     async updateImage(imageId: string, userId: string, updates: { title?: string, imageUrl?: string }): Promise<IImage | null> {
-        const currentImage = await this.imageRepository.findById(imageId);
-        if (!currentImage || currentImage.userId !== userId) {
-            return null;
-        }
-
-        if (updates.imageUrl && currentImage.imageUrl) {
-            const oldPath = path.join(process.cwd(), currentImage.imageUrl);
-            if (fs.existsSync(oldPath)) {
-                fs.unlinkSync(oldPath);
+        if (updates.imageUrl) {
+            const currentImage = await this.imageRepository.findById(imageId);
+            if (currentImage && currentImage.userId === userId && currentImage.imageUrl) {
+                const oldPath = path.join(process.cwd(), currentImage.imageUrl);
+                if (fs.existsSync(oldPath)) {
+                    fs.unlinkSync(oldPath);
+                }
             }
         }
-        return await this.imageRepository.update(imageId, updates);
+        return await this.imageRepository.update(imageId, userId, updates);
     }
 
     async updateImageTitle(imageId: string, userId: string, title: string): Promise<IImage | null> {
-        const currentImage = await this.imageRepository.findById(imageId);
-        if (!currentImage || currentImage.userId !== userId) {
-            return null;
-        }
-        return await this.imageRepository.update(imageId, { title });
+        return await this.imageRepository.update(imageId, userId, { title });
     }
 
     async reorderImages(userId: string, updates: { imageId: string; order: number }[]): Promise<void> {
-        const userImages = await this.imageRepository.findByUserId(userId);
-        const userImageIds = new Set(userImages.map((img) => img.id));
-
-        const authorizedUpdates = updates.filter((update) => userImageIds.has(update.imageId));
-
-        if (authorizedUpdates.length > 0) {
-            await this.imageRepository.updateOrder(authorizedUpdates);
-        }
+        await this.imageRepository.updateOrder(userId, updates);
     }
-
     async getUserImages(userId: string): Promise<IImage[]> {
         return await this.imageRepository.findByUserId(userId);
     }
 
     async deleteImage(imageId: string, userId: string): Promise<boolean> {
-        const currentImage = await this.imageRepository.findById(imageId);
-        if (!currentImage || currentImage.userId !== userId) {
-            return false;
-        }
-        return await this.imageRepository.deleteById(imageId);
+        return await this.imageRepository.deleteById(imageId, userId);
     }
 }

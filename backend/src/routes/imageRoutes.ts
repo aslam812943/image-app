@@ -10,7 +10,16 @@ const router = express.Router();
 // Multer configuration
 const storage = multer.memoryStorage();
 
-const upload = multer({ storage });
+const upload = multer({
+    storage,
+    fileFilter: (_req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only images are allowed!'));
+        }
+    }
+});
 
 const imageRepository = new ImageRepository();
 const imageService = new ImageService(imageRepository);
