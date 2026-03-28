@@ -88,12 +88,12 @@ export class UserController {
 
     verifyIdentity = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { emailOrPhone } = req.body;
-            const success = await this._passwordResetService.verifyIdentity(emailOrPhone);
+            const { identifier } = req.body;
+            const success = await this._passwordResetService.verifyIdentity(identifier);
             if (success) {
                 res.status(HttpStatus.OK).json({ message: COMMON_MESSAGES.EMAIL_VERIFIED });
             } else {
-                res.status(HttpStatus.NOT_FOUND).json({ message: AUTH_MESSAGES.EMAIL_NOT_FOUND });
+                res.status(HttpStatus.NOT_FOUND).json({ message: AUTH_MESSAGES.ACCOUNT_NOT_FOUND });
             }
         } catch (error) {
             res.status(HttpStatus.BAD_REQUEST).json({ message: COMMON_MESSAGES.VERIFICATION_FAILED });
@@ -102,8 +102,8 @@ export class UserController {
 
     resetPassword = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { emailOrPhone, password } = req.body;
-            const success = await this._passwordResetService.resetPassword(emailOrPhone, password);
+            const { identifier, password } = req.body;
+            const success = await this._passwordResetService.resetPassword(identifier, password);
 
             if (success) {
                 res.status(HttpStatus.OK).json({ message: AUTH_MESSAGES.PASSWORD_RESET_SUCCESS });

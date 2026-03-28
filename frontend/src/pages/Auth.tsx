@@ -114,6 +114,11 @@ const Auth: React.FC = () => {
             showToast('error', 'Password must be at least 4 characters');
             return;
         }
+        const passwordRegex = /^\S+$/;
+        if (!passwordRegex.test(passwords.password)) {
+            showToast('error', 'Password cannot contain spaces');
+            return;
+        }
         const isPhone = /^\d+$/.test(resetEmail);
         const identifier = isPhone ? Number(resetEmail) : resetEmail;
 
