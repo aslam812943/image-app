@@ -48,7 +48,7 @@ export class UserController {
                 httpOnly: true,
                 secure: true,
                 sameSite: 'none',
-                maxAge: Number(process.env.COOKIE_MAX_AGE)
+                maxAge: Number(process.env.COOKIE_MAX_AGE) || 86400000
             });
 
             res.status(HttpStatus.OK).json({
