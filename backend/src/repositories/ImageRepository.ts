@@ -56,7 +56,7 @@ export class ImageRepository implements IImageRepository {
 
     private mapToIImage(doc: ImageDocument): IImage {
         const image: IImage = {
-            id: doc._id.toString(),
+            imageId: doc._id.toString(),
             userId: doc.userId.toString(),
             title: doc.title,
             imageUrl: doc.imageUrl,

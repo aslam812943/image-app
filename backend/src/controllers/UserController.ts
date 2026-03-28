@@ -41,8 +41,8 @@ export class UserController {
 
     login = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { emailOrUsername, password } = req.body;
-            const { user, token } = await this._loginService.login(emailOrUsername, password);
+            const { identifier, password } = req.body;
+            const { user, token } = await this._loginService.login(identifier, password);
 
             res.cookie('token', token, {
                 httpOnly: true,

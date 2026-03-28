@@ -10,8 +10,10 @@ export class ImageController {
 
     upload = async (req: Request, res: Response) => {
         try {
-            const userId = req.user!.userId!;
-            console.log(req.files)
+            const userId = req.user?.userId;
+            if (!userId) {
+                return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'Unauthorized: please log in again.' });
+            }
             const files = req.files as Express.Multer.File[];
             const titles = req.body.titles ? JSON.parse(req.body.titles) : [];
 
@@ -22,7 +24,7 @@ export class ImageController {
             const uploadPromises = files.map((file) => {
                 return new Promise<string>((resolve, reject) => {
                     const uploadStream = cloudinary.uploader.upload_stream(
-                        { folder: 'image-app' },
+                        { folder: 'image-app', timeout: 120000 },
                         (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
                             if (error) return reject(error);
                             resolve(result!.secure_url);
@@ -76,7 +78,7 @@ export class ImageController {
             if (file) {
                 const result = await new Promise<string>((resolve, reject) => {
                     const uploadStream = cloudinary.uploader.upload_stream(
-                        { folder: 'image-app' },
+                        { folder: 'image-app', timeout: 120000 },
                         (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
                             if (error) return reject(error);
                             resolve(result!.secure_url);
