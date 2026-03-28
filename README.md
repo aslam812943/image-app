@@ -20,7 +20,6 @@ A full-stack, secure, and modern image management application built with React, 
 - **Framework**: [React 19](https://react.dev/)
 - **Build Tool**: [Vite](https://vitejs.dev/)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **State Management**: React Context API
 - **Networking**: [Axios](https://axios-http.com/)
 - **Drag & Drop**: [@dnd-kit](https://dndkit.com/)
 - **Notifications**: [Toastify-js](https://github.com/apvarun/toastify-js)
