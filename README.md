@@ -87,6 +87,4 @@ The project is structured using the **Repository Pattern** and adheres to **SOLI
 -   Set the Output Directory to `dist`.
 -   Configure `VITE_API_URL` as an environment variable pointing to your deployed backend.
 
-## 📝 License
 
-This project is licensed under the ISC License.
