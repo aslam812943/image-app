@@ -28,6 +28,9 @@ export class RegisterService implements IRegisterService {
         if (!userData.username || userData.username.trim().length < 3) {
             throw new Error('Username must be at least 3 characters long');
         }
+        if (!/^[a-zA-Z]/.test(userData.username.trim())) {
+            throw new Error('Username must start with a letter, not a number');
+        }
         userData.username = userData.username.trim();
 
         if (!userData.password) {

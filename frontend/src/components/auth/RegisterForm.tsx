@@ -42,12 +42,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading }) => {
             newErrors.username = 'Username is required';
         } else if (trimmedUsername.length < 3) {
             newErrors.username = 'Username must be at least 3 characters long';
+        } else if (!/^[a-zA-Z]/.test(trimmedUsername)) {
+            newErrors.username = 'Username must start with a letter, not a number';
         }
 
         if (!formData.identifier) {
             newErrors.identifier = 'Email or Phone is required';
         } else {
-            // Determine if identifier is email or phone
+        
             const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.identifier);
             const isPhone = /^\d+$/.test(formData.identifier);
 
@@ -69,7 +71,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, isLoading }) => {
             return;
         }
 
-        // Determine if identifier is email or phone for payload
+        
         const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.identifier);
         const isPhone = /^\d+$/.test(formData.identifier);
 
