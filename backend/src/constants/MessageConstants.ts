@@ -10,7 +10,7 @@ export const AUTH_MESSAGES = {
     LOGIN_FAILED: 'Login failed',
     INVALID_CREDENTIALS: 'Invalid email/phone',
     INVALID_PASSWORD: 'Invalid password',
-    EMAIL_NOT_FOUND: 'Email not found',
+    ACCOUNT_NOT_FOUND: 'Account not found with this email or phone number',
     PASSWORD_RESET_SUCCESS: 'Password reset successfully',
     PASSWORD_RESET_FAILED: 'Password reset failed',
 } as const;
