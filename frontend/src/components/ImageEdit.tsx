@@ -20,6 +20,13 @@ const ImageEdit: React.FC<ImageEditProps> = ({ image, onUpdateSuccess, onClose }
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
+            const MAX_SIZE = 10 * 1024 * 1024;
+
+            if (file.size > MAX_SIZE) {
+                showToast('error', 'File is too large. Maximum size is 10MB.');
+                return;
+            }
+
             setSelectedFile(file);
             setPreviewUrl(URL.createObjectURL(file));
         }
@@ -43,7 +50,7 @@ const ImageEdit: React.FC<ImageEditProps> = ({ image, onUpdateSuccess, onClose }
             showToast('success', 'Changes saved successfully!');
             onUpdateSuccess();
             onClose();
-        } catch (error) {
+        } catch {
             showToast('error', 'Update failed');
         } finally {
             setUpdating(false);

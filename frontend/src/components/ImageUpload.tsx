@@ -23,19 +23,32 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, onClose }) =
     const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const allFiles = Array.from(e.target.files);
-            const imageFiles = allFiles.filter(file => file.type.startsWith('image/'));
+            const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
-            if (imageFiles.length < allFiles.length) {
+            const validFiles = allFiles.filter(file => {
+                if (!file.type.startsWith('image/')) {
+                    return false;
+                }
+                if (file.size > MAX_SIZE) {
+                    showToast('error', `File ${file.name} is too large. Maximum size is 10MB.`);
+                    return false;
+                }
+                return true;
+            });
+
+            if (validFiles.length < allFiles.filter(f => f.type.startsWith('image/')).length) {
+          
+            } else if (validFiles.length < allFiles.length) {
                 showToast('error', 'Only image files are allowed. Other files were skipped.');
             }
 
-            if (imageFiles.length === 0) return;
+            if (validFiles.length === 0) return;
 
-            const newPreviews = imageFiles.map(file => URL.createObjectURL(file));
+            const newPreviews = validFiles.map(file => URL.createObjectURL(file));
 
-            setSelectedFiles((prev) => [...prev, ...imageFiles]);
+            setSelectedFiles((prev) => [...prev, ...validFiles]);
             setPreviews((prev) => [...prev, ...newPreviews]);
-            setTitles((prev) => [...prev, ...imageFiles.map(() => '')]);
+            setTitles((prev) => [...prev, ...validFiles.map(() => '')]);
         }
     }, []);
 
@@ -94,7 +107,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, onClose }) =
             showToast('success', 'All images uploaded successfully!');
             onUploadSuccess();
             onClose();
-        } catch (error) {
+        } catch {
             showToast('error', 'Upload failed. Please try again.');
         } finally {
             setUploading(false);
