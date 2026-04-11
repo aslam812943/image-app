@@ -54,8 +54,11 @@ export class ImageController {
     getImages = async (req: Request, res: Response) => {
         try {
             const userId = req.user!.userId!;
-            const images = await this._imageService.getUserImages(userId);
-            res.status(HttpStatus.OK).json(images);
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+
+            const result = await this._imageService.getUserImages(userId, page, limit);
+            res.status(HttpStatus.OK).json(result);
         } catch (error) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: IMAGE_MESSAGES.FETCH_FAILED });
         }

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, lazy, Suspense } from 'react';
+import { useEffect, useState, useCallback, useMemo, lazy, Suspense, useRef } from 'react';
 import { imageService } from '../services/api';
 import type { IImage } from '../types/auth.types';
 import { showToast } from '../utils/toast';
@@ -30,8 +30,14 @@ const Home = () => {
     const [editingImage, setEditingImage] = useState<IImage | null>(null);
     const [imageToDelete, setImageToDelete] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [hasOrderChanged, setHasOrderChanged] = useState(false);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [totalImages, setTotalImages] = useState(0);
     const { logout, user } = useAuth();
+
+    const LIMIT = 8;
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -44,21 +50,74 @@ const Home = () => {
         })
     );
 
-    const fetchImages = useCallback(async () => {
+    const fetchImages = useCallback(async (targetPage: number) => {
+        const isInitial = targetPage === 1;
         try {
-            const data = await imageService.getImages();
-            setImages(data);
+            if (isInitial) {
+                setLoading(true);
+            } else {
+                setLoadingMore(true);
+            }
+
+            const data = await imageService.getImages(targetPage, LIMIT);
+
+            setImages(prev => {
+                const updatedImages = isInitial ? data.images : [...prev, ...data.images];
+              
+                setHasMore(updatedImages.length < data.total);
+                return updatedImages;
+            });
+
+            if (isInitial) {
+                setPage(1);
+            }
+            setTotalImages(data.total);
             setHasOrderChanged(false);
         } catch (error) {
             console.error('Failed to fetch images:', error);
+            showToast('error', 'Failed to load images');
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     }, []);
 
     useEffect(() => {
-        fetchImages();
+        fetchImages(1);
     }, [fetchImages]);
+
+    const loadMore = useCallback(() => {
+        if (!loadingMore && hasMore) {
+            const nextPage = page + 1;
+            setPage(nextPage);
+            fetchImages(nextPage);
+        }
+    }, [loadingMore, hasMore, fetchImages, page]);
+
+    const handleInitialFetch = useCallback(() => {
+        fetchImages(1);
+    }, [fetchImages]);
+
+    const observerTarget = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (loading || loadingMore || !hasMore) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    loadMore();
+                }
+            },
+            { threshold: 0.1, rootMargin: '100px' }
+        );
+
+        if (observerTarget.current) {
+            observer.observe(observerTarget.current);
+        }
+
+        return () => observer.disconnect();
+    }, [loading, loadingMore, hasMore, loadMore]);
 
     const handleDelete = useCallback((id: string) => {
         setImageToDelete(id);
@@ -69,8 +128,9 @@ const Home = () => {
         try {
             await imageService.delete(imageToDelete);
             setImages(prev => prev.filter((img) => img.imageId !== imageToDelete));
+            setTotalImages(prev => Math.max(0, prev - 1));
             showToast('success', 'Image deleted successfully');
-        } catch (error) {
+        } catch {
             showToast('error', 'Delete failed');
         } finally {
             setImageToDelete(null);
@@ -104,7 +164,7 @@ const Home = () => {
             await imageService.reorder(updates);
             setHasOrderChanged(false);
             showToast('success', 'Order saved successfully!');
-        } catch (error) {
+        } catch {
             showToast('error', 'Failed to save order');
         }
     }, [images]);
@@ -115,9 +175,16 @@ const Home = () => {
         <div className="min-h-screen bg-gray-50 pb-20">
             <header className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-100 z-10 px-6 py-4">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <h1 className="text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Galleria
-                    </h1>
+                    <div className="flex items-baseline gap-3">
+                        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            Galleria
+                        </h1>
+                        {!loading && totalImages > 0 && (
+                            <span className="text-sm font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full border border-gray-200 animate-in fade-in slide-in-from-left-2 duration-500">
+                                {totalImages} {totalImages === 1 ? 'Photo' : 'Photos'}
+                            </span>
+                        )}
+                    </div>
                     <div className="flex gap-4 items-center">
                         <div className="hidden sm:flex flex-col items-end mr-2">
                             {user && (
@@ -206,12 +273,25 @@ const Home = () => {
                         </button>
                     </div>
                 )}
+
+                {/* Sentinel for Infinite Scroll */}
+                <div ref={observerTarget} className="h-20 flex items-center justify-center mt-8">
+                    {loadingMore && (
+                        <div className="flex items-center gap-3 text-blue-600 font-medium animate-pulse">
+                            <div className="w-6 h-6 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                            <span>Loading more magic...</span>
+                        </div>
+                    )}
+                    {!hasMore && images.length > 0 && (
+                        <p className="text-gray-400 font-medium italic">You've reached the end of your gallery ✨</p>
+                    )}
+                </div>
             </main>
 
             <Suspense fallback={null}>
                 {showUpload && (
                     <ImageUpload
-                        onUploadSuccess={fetchImages}
+                        onUploadSuccess={handleInitialFetch}
                         onClose={() => setShowUpload(false)}
                     />
                 )}
@@ -219,7 +299,7 @@ const Home = () => {
                 {editingImage && (
                     <ImageEdit
                         image={editingImage}
-                        onUpdateSuccess={fetchImages}
+                        onUpdateSuccess={handleInitialFetch}
                         onClose={() => setEditingImage(null)}
                     />
                 )}

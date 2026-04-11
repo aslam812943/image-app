@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { authService } from '../services/api';
 import type { IUser } from '../types/auth.types';
+import { showToast } from '../utils/toast';
 
 interface AuthContextType {
     user: IUser | null;
@@ -37,8 +38,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             await authService.logout();
             setUser(null);
-        } catch (error) {
-            console.error('Logout failed:', error);
+        } catch {
+            showToast('error', 'Login failed');
         }
     };
 

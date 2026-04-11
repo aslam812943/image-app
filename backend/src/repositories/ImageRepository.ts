@@ -29,9 +29,16 @@ export class ImageRepository implements IImageRepository {
         return image ? this.mapToIImage(image) : null;
     }
 
-    async findByUserId(userId: string): Promise<IImage[]> {
-        const images = await Image.find({ userId }).sort({ order: 1 });
-        return images.map((img) => this.mapToIImage(img));
+    async findByUserId(userId: string, page: number = 1, limit: number = 10): Promise<{ images: IImage[], total: number }> {
+        const skip = (page - 1) * limit;
+        const [images, total] = await Promise.all([
+            Image.find({ userId }).sort({ order: 1 }).skip(skip).limit(limit),
+            Image.countDocuments({ userId })
+        ]);
+        return {
+            images: images.map((img) => this.mapToIImage(img)),
+            total
+        };
     }
 
     async update(imageId: string, userId: string, imageData: Partial<IImage>): Promise<IImage | null> {

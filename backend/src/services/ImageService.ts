@@ -8,7 +8,7 @@ export class ImageService implements IImageService {
     constructor(private imageRepository: IImageRepository) { }
 
     async uploadImages(userId: string, imageData: Array<{ title: string; imageUrl: string }>): Promise<IImage[]> {
-        const existingImages = await this.imageRepository.findByUserId(userId);
+        const { images: existingImages } = await this.imageRepository.findByUserId(userId, 1, 1000); 
         let maxOrder = existingImages.length > 0 ? Math.max(...existingImages.map((img) => img.order)) : -1;
 
         const imagesToCreate: IImage[] = imageData.map((data) => ({
@@ -41,8 +41,8 @@ export class ImageService implements IImageService {
     async reorderImages(userId: string, updates: { imageId: string; order: number }[]): Promise<void> {
         await this.imageRepository.updateOrder(userId, updates);
     }
-    async getUserImages(userId: string): Promise<IImage[]> {
-        return await this.imageRepository.findByUserId(userId);
+    async getUserImages(userId: string, page?: number, limit?: number): Promise<{ images: IImage[], total: number }> {
+        return await this.imageRepository.findByUserId(userId, page, limit);
     }
 
     async deleteImage(imageId: string, userId: string): Promise<boolean> {
