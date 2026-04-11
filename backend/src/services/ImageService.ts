@@ -1,39 +1,45 @@
 import { IImage } from '../types/image.types.js';
 import { IImageRepository } from '../repositories/interfaces/IImageRepository.js';
-import fs from 'fs';
-import path from 'path';
 import { IImageService } from './interfaces/IImageService.js';
-import cloudinary from '../config/cloudinaryConfig.js';
+import { IUploadService } from './interfaces/IUploadService.js';
 import { getPublicIdFromUrl } from '../utils/cloudinaryUtils.js';
 
 export class ImageService implements IImageService {
-    constructor(private imageRepository: IImageRepository) { }
+    constructor(
+        private imageRepository: IImageRepository,
+        private uploadService: IUploadService
+    ) { }
 
-    async uploadImages(userId: string, imageData: Array<{ title: string; imageUrl: string }>): Promise<IImage[]> {
+    async uploadImages(userId: string, files: Express.Multer.File[], titles: string[]): Promise<IImage[]> {
         const { images: existingImages } = await this.imageRepository.findByUserId(userId, 1, 1000);
         let maxOrder = existingImages.length > 0 ? Math.max(...existingImages.map((img) => img.order)) : -1;
 
-        const imagesToCreate: IImage[] = imageData.map((data) => ({
+        const uploadPromises = files.map(file => this.uploadService.upload(file));
+        const uploadedUrls = await Promise.all(uploadPromises);
+
+        const imagesToCreate: IImage[] = uploadedUrls.map((url, index) => ({
             userId,
-            title: data.title,
-            imageUrl: data.imageUrl,
+            title: titles[index] || 'Untitled',
+            imageUrl: url,
             order: ++maxOrder,
         }));
 
         return await this.imageRepository.createMany(imagesToCreate);
     }
 
-    async updateImage(imageId: string, userId: string, updates: { title?: string, imageUrl?: string }): Promise<IImage | null> {
-        if (updates.imageUrl) {
+    async updateImage(imageId: string, userId: string, updates: { title?: string }, file?: Express.Multer.File): Promise<IImage | null> {
+        const imageUpdates: any = { ...updates };
+        if (file) {
             const currentImage = await this.imageRepository.findById(imageId);
             if (currentImage && currentImage.userId === userId && currentImage.imageUrl) {
-                const oldPath = path.join(process.cwd(), currentImage.imageUrl);
-                if (fs.existsSync(oldPath)) {
-                    fs.unlinkSync(oldPath);
+                const oldPublicId = getPublicIdFromUrl(currentImage.imageUrl);
+                if (oldPublicId) {
+                    await this.uploadService.delete(oldPublicId);
                 }
             }
+            imageUpdates.imageUrl = await this.uploadService.upload(file);
         }
-        return await this.imageRepository.update(imageId, userId, updates);
+        return await this.imageRepository.update(imageId, userId, imageUpdates);
     }
 
     async updateImageTitle(imageId: string, userId: string, title: string): Promise<IImage | null> {
@@ -52,11 +58,7 @@ export class ImageService implements IImageService {
         if (image && image.userId === userId) {
             const publicId = getPublicIdFromUrl(image.imageUrl);
             if (publicId) {
-                try {
-                    await cloudinary.uploader.destroy(publicId);
-                } catch (error) {
-                    console.error(`Failed to delete image from Cloudinary: ${publicId}`, error);
-                }
+                await this.uploadService.delete(publicId);
             }
         }
         return await this.imageRepository.deleteById(imageId, userId);
@@ -70,15 +72,7 @@ export class ImageService implements IImageService {
                 .filter((id): id is string => id !== null);
 
             if (publicIds.length > 0) {
-                try {
-              
-                    for (let i = 0; i < publicIds.length; i += 100) {
-                        const chunk = publicIds.slice(i, i + 100);
-                        await cloudinary.api.delete_resources(chunk);
-                    }
-                } catch (error) {
-                    console.error('Failed to delete bulk images from Cloudinary', error);
-                }
+                await this.uploadService.deleteMany(publicIds);
             }
         }
         return await this.imageRepository.deleteAllByUserId(userId);

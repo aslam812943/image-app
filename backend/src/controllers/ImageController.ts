@@ -2,8 +2,6 @@ import { Request, Response } from 'express';
 import { IImageService } from '../services/interfaces/IImageService.js';
 import { HttpStatus } from '../constants/HttpStatus.js';
 import { IMAGE_MESSAGES } from '../constants/MessageConstants.js';
-import cloudinary from '../config/cloudinaryConfig.js';
-import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 
 export class ImageController {
     constructor(private _imageService: IImageService) { }
@@ -21,27 +19,7 @@ export class ImageController {
                 return res.status(HttpStatus.BAD_REQUEST).json({ message: IMAGE_MESSAGES.NO_FILES });
             }
 
-            const uploadPromises = files.map((file) => {
-                return new Promise<string>((resolve, reject) => {
-                    const uploadStream = cloudinary.uploader.upload_stream(
-                        { folder: 'image-app', timeout: 120000 },
-                        (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
-                            if (error) return reject(error);
-                            resolve(result!.secure_url);
-                        }
-                    );
-                    uploadStream.end(file.buffer);
-                });
-            });
-
-            const uploadedUrls = await Promise.all(uploadPromises);
-
-            const imageData = uploadedUrls.map((url, index) => ({
-                title: titles[index] || 'Untitled',
-                imageUrl: url,
-            }));
-
-            const images = await this._imageService.uploadImages(userId, imageData);
+            const images = await this._imageService.uploadImages(userId, files, titles);
             res.status(HttpStatus.CREATED).json(images);
         } catch (error) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
@@ -70,34 +48,10 @@ export class ImageController {
             const { title } = req.body;
             const file = req.file as Express.Multer.File;
 
-            interface ImageUpdates {
-                title?: string;
-                imageUrl?: string;
-            }
-
-            const updates: ImageUpdates = {};
-            if (title) updates.title = title;
-
-            if (file) {
-                const result = await new Promise<string>((resolve, reject) => {
-                    const uploadStream = cloudinary.uploader.upload_stream(
-                        { folder: 'image-app', timeout: 120000 },
-                        (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
-                            if (error) return reject(error);
-                            resolve(result!.secure_url);
-                        }
-                    );
-                    uploadStream.end(file.buffer);
-                });
-                updates.imageUrl = result;
-            }
-
-            if (!imageId || (Object.keys(updates).length === 0)) {
-                return res.status(HttpStatus.BAD_REQUEST).json({ message: IMAGE_MESSAGES.UPDATE_DATA_REQUIRED });
-            }
-
+            const updates = { title };
             const userId = req.user!.userId!;
-            const updatedImage = await this._imageService.updateImage(imageId as string, userId, updates);
+
+            const updatedImage = await this._imageService.updateImage(imageId as string, userId, updates, file);
             if (updatedImage) {
                 res.status(HttpStatus.OK).json(updatedImage);
             } else {

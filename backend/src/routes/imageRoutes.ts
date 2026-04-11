@@ -3,6 +3,7 @@ import multer from 'multer';
 import { ImageController } from '../controllers/ImageController.js';
 import { ImageService } from '../services/ImageService.js';
 import { ImageRepository } from '../repositories/ImageRepository.js';
+import { CloudinaryUploadService } from '../services/CloudinaryUploadService.js';
 import { authMiddleware } from '../middleware/AuthMiddleware.js';
 
 const router = express.Router();
@@ -25,7 +26,8 @@ const upload = multer({
 });
 
 const imageRepository = new ImageRepository();
-const imageService = new ImageService(imageRepository);
+const uploadService = new CloudinaryUploadService();
+const imageService = new ImageService(imageRepository, uploadService);
 const imageController = new ImageController(imageService);
 
 router.post('/upload', authMiddleware, upload.array('images'), imageController.upload);
