@@ -7,4 +7,5 @@ export interface IImageService {
     reorderImages(userId: string, updates: { imageId: string; order: number }[]): Promise<void>;
     getUserImages(userId: string, page?: number, limit?: number): Promise<{ images: IImage[], total: number }>;
     deleteImage(imageId: string, userId: string): Promise<boolean>;
+    deleteAllImages(userId: string): Promise<boolean>;
 }

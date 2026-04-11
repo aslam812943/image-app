@@ -32,6 +32,7 @@ router.post('/upload', authMiddleware, upload.array('images'), imageController.u
 router.get('/', authMiddleware, imageController.getImages);
 router.patch('/:imageId', authMiddleware, upload.single('image'), imageController.update);
 router.put('/reorder', authMiddleware, imageController.reorder);
+router.delete('/all', authMiddleware, imageController.deleteAllImages);
 router.delete('/:imageId', authMiddleware, imageController.deleteImage);
 
 export default router;

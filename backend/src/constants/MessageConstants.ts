@@ -24,6 +24,8 @@ export const IMAGE_MESSAGES = {
     UPDATE_FAILED: 'Failed to update image',
     DELETE_SUCCESS: 'Image deleted successfully',
     DELETE_FAILED: 'Failed to delete image',
+    DELETE_ALL_SUCCESS: 'All images deleted successfully',
+    DELETE_ALL_FAILED: 'Failed to delete all images',
     REORDER_SUCCESS: 'Images reordered successfully',
     REORDER_FAILED: 'Failed to reorder images',
     NOT_FOUND: 'Image not found',
