@@ -61,6 +61,11 @@ export class ImageRepository implements IImageRepository {
         return result !== null;
     }
 
+    async deleteAllByUserId(userId: string): Promise<boolean> {
+        const result = await Image.deleteMany({ userId });
+        return result.deletedCount > 0;
+    }
+
     private mapToIImage(doc: ImageDocument): IImage {
         const image: IImage = {
             imageId: doc._id.toString(),

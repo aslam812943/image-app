@@ -8,4 +8,5 @@ export interface IImageRepository {
     update(imageId: string, userId: string, imageData: Partial<IImage>): Promise<IImage | null>;
     updateOrder(userId: string, updates: { imageId: string; order: number }[]): Promise<void>;
     deleteById(imageId: string, userId: string): Promise<boolean>;
+    deleteAllByUserId(userId: string): Promise<boolean>;
 }

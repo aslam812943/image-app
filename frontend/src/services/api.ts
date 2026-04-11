@@ -67,6 +67,10 @@ export const imageService = {
     delete: async (imageId: string): Promise<void> => {
         const response = await api.delete(`${API_ROUTES.IMAGES_BASE}/${imageId}`);
         return response.data;
+    },
+    deleteAll: async (): Promise<void> => {
+        const response = await api.delete(API_ROUTES.IMAGES_DELETE_ALL);
+        return response.data;
     }
 };
 

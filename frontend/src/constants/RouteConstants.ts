@@ -7,5 +7,6 @@ export const API_ROUTES = {
     USER_RESET_PASSWORD: 'user/reset-password',
     IMAGES_UPLOAD: 'images/upload',
     IMAGES_BASE: 'images',
-    IMAGES_REORDER: 'images/reorder'
+    IMAGES_REORDER: 'images/reorder',
+    IMAGES_DELETE_ALL: 'images/all'
 } as const;

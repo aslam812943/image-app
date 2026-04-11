@@ -136,4 +136,18 @@ export class ImageController {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: IMAGE_MESSAGES.DELETE_FAILED });
         }
     };
+
+    deleteAllImages = async (req: Request, res: Response) => {
+        try {
+            const userId = req.user!.userId!;
+            const success = await this._imageService.deleteAllImages(userId);
+            if (success) {
+                res.status(HttpStatus.OK).json({ message: IMAGE_MESSAGES.DELETE_ALL_SUCCESS });
+            } else {
+                res.status(HttpStatus.NOT_FOUND).json({ message: IMAGE_MESSAGES.NOT_FOUND });
+            }
+        } catch (error) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: IMAGE_MESSAGES.DELETE_ALL_FAILED });
+        }
+    };
 }

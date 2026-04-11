@@ -29,6 +29,7 @@ const Home = () => {
     const [showUpload, setShowUpload] = useState(false);
     const [editingImage, setEditingImage] = useState<IImage | null>(null);
     const [imageToDelete, setImageToDelete] = useState<string | null>(null);
+    const [isDeletingAll, setIsDeletingAll] = useState(false);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasOrderChanged, setHasOrderChanged] = useState(false);
@@ -63,7 +64,7 @@ const Home = () => {
 
             setImages(prev => {
                 const updatedImages = isInitial ? data.images : [...prev, ...data.images];
-              
+
                 setHasMore(updatedImages.length < data.total);
                 return updatedImages;
             });
@@ -136,6 +137,20 @@ const Home = () => {
             setImageToDelete(null);
         }
     }, [imageToDelete]);
+
+    const confirmDeleteAll = useCallback(async () => {
+        try {
+            await imageService.deleteAll();
+            setImages([]);
+            setTotalImages(0);
+            setHasMore(false);
+            showToast('success', 'All images deleted successfully');
+        } catch {
+            showToast('error', 'Failed to delete all images');
+        } finally {
+            setIsDeletingAll(false);
+        }
+    }, []);
 
     const handleEdit = useCallback((image: IImage) => {
         setEditingImage(image);
@@ -215,6 +230,18 @@ const Home = () => {
                                 </svg>
                                 Add Image
                             </button>
+                            {!loading && images.length > 0 && (
+                                <button
+                                    onClick={() => setIsDeletingAll(true)}
+                                    className="flex items-center gap-2 px-6 py-2.5 bg-red-50 text-red-600 rounded-full font-bold border border-red-100 hover:bg-red-100 hover:-translate-y-0.5 transition-all active:scale-95"
+                                    title="Delete All Images"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    Delete All
+                                </button>
+                            )}
                             <button
                                 onClick={logout}
                                 className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all border border-transparent hover:border-red-100"
@@ -310,6 +337,14 @@ const Home = () => {
                     message="Are you sure you want to delete this image? This action cannot be undone."
                     onConfirm={confirmDelete}
                     onCancel={() => setImageToDelete(null)}
+                />
+
+                <ConfirmModal
+                    isOpen={isDeletingAll}
+                    title="Delete All Images"
+                    message="Are you sure you want to delete ALL images? This action is permanent and cannot be undone."
+                    onConfirm={confirmDeleteAll}
+                    onCancel={() => setIsDeletingAll(false)}
                 />
             </Suspense>
         </div>
