@@ -37,7 +37,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, onClose }) =
             });
 
             if (validFiles.length < allFiles.filter(f => f.type.startsWith('image/')).length) {
-          
+           
             } else if (validFiles.length < allFiles.length) {
                 showToast('error', 'Only image files are allowed. Other files were skipped.');
             }

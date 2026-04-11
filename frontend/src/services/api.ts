@@ -45,8 +45,10 @@ export const imageService = {
         return response.data;
     },
 
-    getImages: async (): Promise<IImage[]> => {
-        const response = await api.get<IImage[]>(API_ROUTES.IMAGES_BASE);
+    getImages: async (page: number = 1, limit: number = 10): Promise<{ images: IImage[], total: number }> => {
+        const response = await api.get<{ images: IImage[], total: number }>(API_ROUTES.IMAGES_BASE, {
+            params: { page, limit }
+        });
         return response.data;
     },
 
