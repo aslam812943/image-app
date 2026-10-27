@@ -53,37 +53,30 @@ The project is structured using the **Repository Pattern** and adheres to **SOLI
 ### Backend Setup
 1.  Navigate to `backend/` folder.
 2.  Install dependencies: `npm install`.
-3.  Create a `.env` file based on `.env.example`:
+3.  Create a `.env` file with:
     ```env
     PORT=5000
-    MONGODB_URI=your_mongodb_uri
+    MONGO_URI=your_mongodb_uri
     JWT_SECRET=your_jwt_secret
     CLOUDINARY_CLOUD_NAME=your_cloud_name
     CLOUDINARY_API_KEY=your_api_key
     CLOUDINARY_API_SECRET=your_api_secret
-    FRONTEND_URL=http://localhost:5173
     ```
 4.  Run development server: `npm run dev`.
 
 ### Frontend Setup
 1.  Navigate to `frontend/` folder.
 2.  Install dependencies: `npm install`.
-3.  Create a `.env` file:
-    ```env
-    VITE_API_URL=http://localhost:5000
-    ```
-4.  Run development server: `npm run dev`.
+3.  Run development server: `npm run dev`. Vite proxies `/api` to the backend on port 5000, so start the backend first.
 
 ## 🌐 Hosting & Deployment
 
-### Backend (e.g., Render, Railway)
--   Set the Build Command to `npm install && npm run build`.
--   Set the Start Command to `npm start`.
--   Configure Environment Variables as listed in the Backend Setup.
+### Vercel Services
 
-### Frontend (e.g., Vercel, Netlify)
--   Set the Build Command to `npm run build`.
--   Set the Output Directory to `dist`.
--   Configure `VITE_API_URL` as an environment variable pointing to your deployed backend.
+Import this repository as one Vercel project, keep the project root at the repository root, and set its Framework Preset to **Services**. The root `vercel.json` builds `backend` as Express and `frontend` as Vite. Public `/api/*` requests reach the backend; all other paths reach the frontend. The frontend calls `/api` on the same origin, so no `VITE_API_URL` or service binding is needed. Image files are stored on Cloudinary, not on the function filesystem.
+
+Set `MONGO_URI`, `JWT_SECRET`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` in the Vercel project environment. Set `COOKIE_MAX_AGE` if you want to override the one-day default. Do not set a binding URL manually.
+
+Use `vercel dev -L` from the repository root to run both services locally without linking a Vercel project. The separate `npm run dev` commands described above also work.
 
 

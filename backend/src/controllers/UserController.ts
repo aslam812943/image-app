@@ -46,8 +46,8 @@ export class UserController {
 
             res.cookie('token', token, {
                 httpOnly: true,
-                secure: true,
-                sameSite: 'none',
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
                 maxAge: Number(process.env.COOKIE_MAX_AGE) || 86400000
             });
 
@@ -69,8 +69,8 @@ export class UserController {
     logout = async (_req: Request, res: Response): Promise<void> => {
         res.clearCookie('token', {
             httpOnly: true,
-            secure: true,
-            sameSite: 'none'
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
         });
         res.status(HttpStatus.OK).json({
             message: COMMON_MESSAGES.LOGOUT_SUCCESS,

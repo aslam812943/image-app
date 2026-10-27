@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { BASE_URL } from '../services/api';
 import type { IImage } from '../types/auth.types';
 
 interface SortablePhotoProps {
@@ -35,7 +34,7 @@ export const SortablePhoto = memo(({ image, onDelete, onEdit }: SortablePhotoPro
         >
             <div className="aspect-[4/3] overflow-hidden cursor-grab active:cursor-grabbing" {...attributes} {...listeners}>
                 <img
-                    src={image.imageUrl.startsWith('http') ? image.imageUrl : `${BASE_URL}${image.imageUrl}`}
+                    src={image.imageUrl}
                     alt={image.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     draggable={false}

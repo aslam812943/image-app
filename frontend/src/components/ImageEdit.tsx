@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { imageService, BASE_URL } from '../services/api';
+import { imageService } from '../services/api';
 import type { IImage } from '../types/auth.types';
 import { showToast } from '../utils/toast';
 
@@ -13,7 +13,7 @@ const ImageEdit: React.FC<ImageEditProps> = ({ image, onUpdateSuccess, onClose }
     const [title, setTitle] = useState(image.title);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>(
-        image.imageUrl.startsWith('http') ? image.imageUrl : `${BASE_URL}${image.imageUrl}`
+        image.imageUrl
     );
     const [updating, setUpdating] = useState(false);
 
